@@ -1,4 +1,4 @@
-package io.opentracing.contrib.specialagent.jdbc;
+package io.opentracing.contrib.agent.jdbc;
 
 import static org.junit.Assert.*;
 
@@ -14,26 +14,12 @@ import io.opentracing.Scope;
 import io.opentracing.contrib.specialagent.AgentRunner;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
-import io.opentracing.util.GlobalTracer;
-import net.bytebuddy.agent.ByteBuddyAgent;
 
 @RunWith(AgentRunner.class)
-@AgentRunner.Config(debug=true, verbose=true, transformer=AgentRunner.Transformer.BYTEBUDDY)
-public class JdbcByteBuddyTest {
-  public static MockTracer tracer = new MockTracer();
-
-  static {
-    try {
-      GlobalTracer.register(tracer);
-      AgentPlugin.premain(null, ByteBuddyAgent.install());
-    }
-    catch (final Exception e) {
-      throw new ExceptionInInitializerError(e);
-    }
-  }
-
+@AgentRunner.Config(debug=true, verbose=true)
+public class JdbcITest {
   @Test
-  public void test() throws Exception {
+  public void test(final MockTracer tracer) throws Exception {
     Class.forName("org.h2.Driver");
     try (
       final Scope ignored = tracer.buildSpan("jdbc-test").startActive(true);

@@ -52,10 +52,6 @@ public class OpenTracingHelper extends org.jboss.byteman.rule.helper.Helper {
     super(rule);
   }
 
-  public OpenTracingHelper() {
-    super(null);
-  }
-
   /**
    * If the property
    * {@code 'io.opentracing.contrib.agent.allowInstrumentedTracer'} ==
@@ -244,10 +240,6 @@ public class OpenTracingHelper extends org.jboss.byteman.rule.helper.Helper {
     @Override
     public ScopeManager scopeManager() {
       return tracer.scopeManager();
-    }
-
-    public Tracer getTracer() {
-      return tracer;
     }
   }
 
