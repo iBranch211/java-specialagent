@@ -1,5 +1,5 @@
 <!--
-  Copyright 2018 The OpenTracing Authors
+  Copyright 2018-2019 The OpenTracing Authors
   
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -32,24 +32,13 @@
           <name>deploy</name>
         </property>
       </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>io.opentracing.contrib</groupId>
-            <artifactId>specialagent-maven-plugin</artifactId>
-            <version>${project.version}</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>verify</goal>
-                </goals>
-                <phase>verify</phase>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
       <dependencies>
+        <dependency>
+          <groupId>io.opentracing.contrib</groupId>
+          <artifactId>opentracing-specialagent-aws-sdk</artifactId>
+          <version>${project.version}</version>
+          <scope>provided</scope>
+        </dependency>
         <dependency>
           <groupId>io.opentracing.contrib</groupId>
           <artifactId>opentracing-specialagent-okhttp</artifactId>

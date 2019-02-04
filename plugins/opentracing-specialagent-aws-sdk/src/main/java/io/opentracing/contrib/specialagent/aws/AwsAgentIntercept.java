@@ -12,21 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.opentracing.contrib.specialagent.aws;
 
-package io.opentracing.contrib.specialagent;
 
-import static org.junit.Assert.*;
+import io.opentracing.contrib.aws.TracingRequestHandler;
 
-import org.junit.Test;
-
-public class SpecialAgentMojoTest {
-  @Test
-  public void test() {
-    try {
-      SpecialAgentMojo.getPathOf(null, null);
-      fail("Expected NullPointerException");
-    }
-    catch (final NullPointerException e) {
-    }
+public class AwsAgentIntercept {
+  public static void enter(final Object thiz) {
+    final com.amazonaws.client.builder.AwsClientBuilder builder =
+        (com.amazonaws.client.builder.AwsClientBuilder) thiz;
+    final TracingRequestHandler requestHandler = new TracingRequestHandler();
+    builder.withRequestHandlers(requestHandler);
   }
 }

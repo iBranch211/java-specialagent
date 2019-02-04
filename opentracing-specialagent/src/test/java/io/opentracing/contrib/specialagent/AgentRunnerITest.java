@@ -36,10 +36,6 @@ import io.opentracing.mock.MockTracer;
 public class AgentRunnerITest {
   private static final Logger logger = Logger.getLogger(AgentRunnerITest.class.getName());
 
-  static {
-    AgentRunner.getManifestFile().deleteOnExit();
-  }
-
   private static void assertClassLoader() {
     logger.fine("  " + new Exception().getStackTrace()[1]);
     assertEquals(URLClassLoader.class, AgentRunnerITest.class.getClassLoader().getClass());
@@ -51,7 +47,7 @@ public class AgentRunnerITest {
   }
 
   @BeforeClass
-  public static void beforeClass2() {
+  public static void beforeClass2(final MockTracer tracer) {
     assertClassLoader();
   }
 
@@ -61,7 +57,7 @@ public class AgentRunnerITest {
   }
 
   @AfterClass
-  public static void afterClass2() {
+  public static void afterClass2(final MockTracer tracer) {
     assertClassLoader();
 //    throw new RuntimeException();
   }
@@ -72,7 +68,7 @@ public class AgentRunnerITest {
   }
 
   @Before
-  public void before2() {
+  public void before2(final MockTracer tracer) {
     assertClassLoader();
   }
 
@@ -82,7 +78,7 @@ public class AgentRunnerITest {
   }
 
   @After
-  public void after2() {
+  public void after2(final MockTracer tracer) {
     assertClassLoader();
   }
 
@@ -92,7 +88,7 @@ public class AgentRunnerITest {
   }
 
   @Test
-  public void test2() {
+  public void test2(final MockTracer tracer) {
     assertClassLoader();
   }
 
@@ -103,13 +99,7 @@ public class AgentRunnerITest {
 
   @Test
   @Ignore
-  public void ignored1(final MockTracer tracer) {
-    assertClassLoader();
-  }
-
-  @Test
-  @Ignore
-  public void ignored2() {
+  public void ignored(final MockTracer tracer) {
     assertClassLoader();
   }
 }
