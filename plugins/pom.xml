@@ -1,5 +1,5 @@
 <!--
-  Copyright 2018-2019 The OpenTracing Authors
+  Copyright 2018 The OpenTracing Authors
   
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -32,9 +32,44 @@
     <module>opentracing-specialagent-mongo-driver</module>
     <module>opentracing-specialagent-web-servlet-filter</module>
     <module>opentracing-specialagent-camel</module>
-    <module>opentracing-specialagent-aws-sdk</module>
   </modules>
   <profiles>
+    <profile>
+      <id>deploy</id>
+      <activation>
+        <property>
+          <name>deploy</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>integration-test</id>
+                <goals>
+                  <goal>integration-test</goal>
+                  <goal>verify</goal>
+                </goals>
+                <phase>integration-test</phase>
+                <configuration>
+                  <skip>true</skip>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
     <profile>
       <id>default</id>
       <activation>
