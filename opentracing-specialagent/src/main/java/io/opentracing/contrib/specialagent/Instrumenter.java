@@ -21,6 +21,7 @@ package io.opentracing.contrib.specialagent;
  * @author Seva Safris
  */
 public enum Instrumenter {
+  BYTEMAN(new BytemanManager()),
   BYTEBUDDY(new ByteBuddyManager());
 
   final Manager manager;

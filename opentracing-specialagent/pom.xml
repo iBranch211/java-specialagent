@@ -98,6 +98,12 @@
           <version>${project.version}</version>
           <scope>provided</scope>
         </dependency>
+        <dependency>
+          <groupId>io.opentracing.contrib</groupId>
+          <artifactId>opentracing-specialagent-jms</artifactId>
+          <version>${project.version}</version>
+          <scope>provided</scope>
+        </dependency>
       </dependencies>
     </profile>
     <profile>
@@ -163,6 +169,11 @@
     <dependency>
       <groupId>net.bytebuddy</groupId>
       <artifactId>byte-buddy-agent</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.byteman</groupId>
+      <artifactId>byteman</artifactId>
       <optional>true</optional>
     </dependency>
     <dependency>
