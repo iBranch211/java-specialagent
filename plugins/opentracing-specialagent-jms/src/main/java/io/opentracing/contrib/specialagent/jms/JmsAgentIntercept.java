@@ -17,15 +17,23 @@ package io.opentracing.contrib.specialagent.jms;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 
-import io.opentracing.contrib.jms.TracingMessageProducer;
+import io.opentracing.contrib.jms2.TracingMessageProducer;
 import io.opentracing.contrib.jms.common.TracingMessageConsumer;
 
 public class JmsAgentIntercept {
   public static Object createProducer(final Object thiz) {
-    return thiz instanceof TracingMessageProducer ? thiz : new TracingMessageProducer((MessageProducer)thiz);
+    if (thiz instanceof TracingMessageProducer)
+      return thiz;
+
+    MessageProducer messageProducer = (MessageProducer)thiz;
+    return new TracingMessageProducer(messageProducer);
   }
 
   public static Object createConsumer(final Object thiz) {
-    return thiz instanceof TracingMessageConsumer ? thiz : new TracingMessageConsumer((MessageConsumer)thiz);
+    if (thiz instanceof TracingMessageConsumer)
+      return thiz;
+
+    MessageConsumer messageConsumer = (MessageConsumer)thiz;
+    return new TracingMessageConsumer(messageConsumer);
   }
 }
