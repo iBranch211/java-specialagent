@@ -16,7 +16,6 @@
 package io.opentracing.contrib.specialagent;
 
 import java.lang.reflect.Array;
-import java.util.logging.Logger;
 
 /**
  * Utility functions for subclasses of {@link AgentPlugin}.
@@ -24,8 +23,6 @@ import java.util.logging.Logger;
  * @author Seva Safris
  */
 public final class AgentPluginUtil {
-  public static final Logger logger = Logger.getLogger(AgentPlugin.class.getName());
-
   /**
    * Returns an array that is the subArray of the provided array.
    *

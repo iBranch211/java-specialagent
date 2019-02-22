@@ -16,6 +16,7 @@ package io.opentracing.contrib.specialagent.aws;
 
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import io.opentracing.contrib.specialagent.AgentPlugin;
@@ -45,7 +46,8 @@ public class AwsAgentPlugin implements AgentPlugin {
   }
 
   @Advice.OnMethodEnter
-  public static void enter(final @Advice.This Object thiz) {
+  public static void enter(final @Advice.Origin Method method, final @Advice.This Object thiz) {
+    System.out.println(">>>>>> " + method);
     AwsAgentIntercept.enter(thiz);
   }
 }

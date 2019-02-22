@@ -17,6 +17,7 @@ package io.opentracing.contrib.specialagent.concurrent;
 
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.concurrent.Executor;
 
@@ -52,7 +53,8 @@ public class ExecutorAgentPlugin implements AgentPlugin {
   }
 
   @Advice.OnMethodEnter
-  public static void exit(@Advice.Argument(value = 0, readOnly = false, typing = Typing.DYNAMIC) Runnable arg) throws Exception {
+  public static void exit(@Advice.Origin Method method, @Advice.Argument(value = 0, readOnly = false, typing = Typing.DYNAMIC) Runnable arg) throws Exception {
+    System.out.println(">>>>>> " + method);
     final Tracer tracer = GlobalTracer.get();
     if (tracer.activeSpan() != null)
       arg = new TracedRunnable(arg, tracer);

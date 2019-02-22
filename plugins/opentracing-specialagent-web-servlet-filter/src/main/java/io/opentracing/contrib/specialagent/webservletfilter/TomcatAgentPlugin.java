@@ -17,6 +17,7 @@ package io.opentracing.contrib.specialagent.webservletfilter;
 
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
+import java.lang.reflect.Constructor;
 import java.util.Arrays;
 
 import io.opentracing.contrib.specialagent.AgentPlugin;
@@ -46,7 +47,8 @@ public class TomcatAgentPlugin implements AgentPlugin {
   }
 
   @Advice.OnMethodExit
-  public static void exit(final @Advice.This Object thiz) {
+  public static void exit(final @Advice.Origin Constructor<?> constructor, final @Advice.This Object thiz) {
+    System.out.println(">>>>>> " + constructor);
     TomcatAgentIntercept.exit(thiz);
   }
 }
