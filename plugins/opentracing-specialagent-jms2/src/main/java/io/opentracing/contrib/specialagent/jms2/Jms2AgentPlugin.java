@@ -12,14 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.opentracing.contrib.specialagent.jms;
+package io.opentracing.contrib.specialagent.jms2;
 
-import static net.bytebuddy.matcher.ElementMatchers.*;
-
-import java.lang.reflect.Method;
-import java.util.Arrays;
+import static net.bytebuddy.matcher.ElementMatchers.hasSuperType;
+import static net.bytebuddy.matcher.ElementMatchers.named;
+import static net.bytebuddy.matcher.ElementMatchers.returns;
 
 import io.opentracing.contrib.specialagent.AgentPlugin;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.AgentBuilder.Identified.Narrowable;
 import net.bytebuddy.agent.builder.AgentBuilder.InitializationStrategy;
@@ -32,7 +33,7 @@ import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.implementation.bytecode.assign.Assigner.Typing;
 import net.bytebuddy.utility.JavaModule;
 
-public class JmsAgentPlugin implements AgentPlugin {
+public class Jms2AgentPlugin implements AgentPlugin {
   @Override
   public Iterable<? extends AgentBuilder> buildAgent(final String agentArgs) {
     final Narrowable builder = new AgentBuilder.Default().
@@ -58,7 +59,7 @@ public class JmsAgentPlugin implements AgentPlugin {
     @Advice.OnMethodExit
     public static void enter(final @Advice.Origin Method method, @Advice.Return(readOnly = false, typing = Typing.DYNAMIC) Object returned) {
       System.out.println(">>>>>> " + method);
-      returned = JmsAgentIntercept.createProducer(returned);
+      returned = Jms2AgentIntercept.createProducer(returned);
     }
   }
 
@@ -66,7 +67,7 @@ public class JmsAgentPlugin implements AgentPlugin {
     @Advice.OnMethodExit
     public static void enter(final @Advice.Origin Method method, @Advice.Return(readOnly = false, typing = Typing.DYNAMIC) Object returned) {
       System.out.println(">>>>>> " + method);
-      returned = JmsAgentIntercept.createConsumer(returned);
+      returned = Jms2AgentIntercept.createConsumer(returned);
     }
   }
 }

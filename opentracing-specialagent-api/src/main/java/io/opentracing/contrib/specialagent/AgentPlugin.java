@@ -17,11 +17,6 @@ package io.opentracing.contrib.specialagent;
 
 import net.bytebuddy.agent.builder.AgentBuilder;
 
-/**
- * Interface for SpecialAgent Plugins.
- *
- * @author Seva Safris
- */
 public interface AgentPlugin {
   abstract Iterable<? extends AgentBuilder> buildAgent(String agentArgs) throws Exception;
 //  ElementMatcher<? super MethodDescription> onMethod();

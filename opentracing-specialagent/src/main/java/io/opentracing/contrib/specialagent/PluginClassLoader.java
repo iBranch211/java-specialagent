@@ -109,8 +109,7 @@ class PluginClassLoader extends URLClassLoader {
           return false;
         }
 
-        if (logger.isLoggable(Level.FINE))
-          logger.fine("Allowing instrumentation due to default \"-DfailOnEmptyFingerprint=false\" and \"" + FINGERPRINT_FILE + " not found\" in:\n" + Util.toIndentedString(getURLs()));
+        logger.warning("Allowing instrumentation due to default \"-DfailOnEmptyFingerprint=false\" and \"" + FINGERPRINT_FILE + " not found\" in:\n" + Util.toIndentedString(getURLs()));
       }
     }
     catch (final IOException e) {

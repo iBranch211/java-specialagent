@@ -107,15 +107,14 @@ public class ClassLoaderAgent {
         if (bytecode == null)
           return;
 
-        if (AgentPluginUtil.logger.isLoggable(Level.FINEST))
-          AgentPluginUtil.logger.finest("<<<<<<<< defineClass(\"" + arg + "\")");
-
+        System.err.println("<<<<<<<< defineClass(\"" + arg + "\")");
         final Method defineClass = ClassLoader.class.getDeclaredMethod("defineClass", String.class, byte[].class, int.class, int.class, ProtectionDomain.class);
         returned = (Class<?>)defineClass.invoke(thiz, arg, bytecode, 0, bytecode.length, null);
         thrown = null;
       }
       catch (final Throwable t) {
-        AgentPluginUtil.logger.log(Level.SEVERE, "<><><><> ClassLoaderAgent.FindClass#exit", t);
+        System.err.println("<><><><> ClassLoaderAgent.FindClass#exit: " + t);
+        t.printStackTrace();
       }
       finally {
         mutex.get().remove(arg);
@@ -137,7 +136,8 @@ public class ClassLoaderAgent {
           returned = resource;
       }
       catch (final Throwable t) {
-        AgentPluginUtil.logger.log(Level.SEVERE, "<><><><> ClassLoaderAgent.FindResource#exit", t);
+        System.err.println("<><><><> ClassLoaderAgent.FindResource#exit: " + t);
+        t.printStackTrace();
       }
       finally {
         mutex.get().remove(arg);
@@ -161,7 +161,8 @@ public class ClassLoaderAgent {
         returned = returned == null ? resources : new CompoundEnumeration<>(returned, resources);
       }
       catch (final Throwable t) {
-        AgentPluginUtil.logger.log(Level.SEVERE, "<><><><> ClassLoaderAgent.FindResources#exit", t);
+        System.err.println("<><><><> ClassLoaderAgent.FindResources#exit: " + t);
+        t.printStackTrace();
       }
       finally {
         mutex.get().remove(arg);
