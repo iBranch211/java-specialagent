@@ -36,7 +36,7 @@ import javax.jms.TextMessage;
 import org.junit.Test;
 
 import io.opentracing.contrib.jms.common.TracingMessageConsumer;
-import io.opentracing.contrib.jms2.TracingMessageProducer;
+import io.opentracing.contrib.jms.TracingMessageProducer;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 
