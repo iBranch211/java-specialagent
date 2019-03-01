@@ -23,45 +23,48 @@
     <artifactId>plugins</artifactId>
     <version>0.9.0</version>
   </parent>
-  <artifactId>opentracing-specialagent-jms-1</artifactId>
-  <name>${project.groupId}:${project.artifactId}</name>
-  <url>https://github.com/opentracing-contrib/java-specialagent/tree/master/plugins/opentracing-specialagent-jms-1</url>
-  <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <activemq.version>5.15.5</activemq.version>
-  </properties>
+  <artifactId>opentracing-specialagent-elasticsearch-client-6</artifactId>
   <dependencies>
     <dependency>
-      <!-- https://github.com/opentracing-contrib/java-jms -->
       <groupId>io.opentracing.contrib</groupId>
-      <artifactId>opentracing-jms-1</artifactId>
-      <version>0.0.11</version>
+      <artifactId>opentracing-elasticsearch-client-common</artifactId>
+      <version>0.0.7</version>
       <exclusions>
         <exclusion>
-          <groupId>javax.jms</groupId>
-          <artifactId>jms-api</artifactId>
+          <groupId>org.elasticsearch.client</groupId>
+          <artifactId>transport</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
+
     <dependency>
-      <groupId>javax.jms</groupId>
-      <artifactId>jms-api</artifactId>
-      <version>1.1-rev-1</version>
+      <groupId>org.elasticsearch.client</groupId>
+      <artifactId>transport</artifactId>
+      <version>6.6.1</version>
       <optional>true</optional>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>org.apache.activemq</groupId>
-      <artifactId>activemq-broker</artifactId>
-      <version>${activemq.version}</version>
-      <scope>test</scope>
-    </dependency>
+
     <dependency>
       <groupId>org.awaitility</groupId>
       <artifactId>awaitility</artifactId>
       <version>3.1.2</version>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>2.11.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.11.1</version>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
 </project>
