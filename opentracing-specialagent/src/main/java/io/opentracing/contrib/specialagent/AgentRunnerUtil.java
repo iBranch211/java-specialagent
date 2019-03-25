@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent;
 
-import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,7 +26,6 @@ import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.Tracer.SpanBuilder;
 import io.opentracing.mock.MockTracer;
-import io.opentracing.mock.ProxyMockTracer;
 import io.opentracing.propagation.Format;
 import io.opentracing.util.GlobalTracer;
 
@@ -62,23 +60,7 @@ public class AgentRunnerUtil {
       if (tracer != null)
         return tracer;
 
-      final MockTracer tracer;
-      if (GlobalTracer.isRegistered()) {
-        try {
-          final Field field = GlobalTracer.class.getDeclaredField("tracer");
-          field.setAccessible(true);
-          tracer = new ProxyMockTracer((Tracer)field.get(null));
-          field.set(null, tracer);
-        }
-        catch (final IllegalAccessException | NoSuchFieldException e) {
-          throw new IllegalStateException(e);
-        }
-      }
-      else {
-        tracer = new MockTracer();
-        GlobalTracer.register(tracer);
-      }
-
+      final Tracer tracer = GlobalTracer.isRegistered() ? GlobalTracer.get() : new MockTracer();
       if (logger.isLoggable(Level.FINEST)) {
         logger.finest("Registering tracer for AgentRunner: " + tracer);
         logger.finest("  Tracer ClassLoader: " + tracer.getClass().getClassLoader());
@@ -87,7 +69,10 @@ public class AgentRunnerUtil {
         logger.finest("  GlobalTracer Location: " + ClassLoader.getSystemClassLoader().getResource(GlobalTracer.class.getName().replace('.', '/').concat(".class")));
       }
 
-      return AgentRunnerUtil.tracer = tracer;
+      if (!(tracer instanceof GlobalTracer))
+        GlobalTracer.register(tracer);
+
+      return AgentRunnerUtil.tracer = tracer instanceof MockTracer ? tracer : new ProxyTracer(tracer);
     }
   }
 
