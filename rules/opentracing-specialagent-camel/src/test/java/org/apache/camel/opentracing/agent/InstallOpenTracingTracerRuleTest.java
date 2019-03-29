@@ -78,9 +78,7 @@ public class InstallOpenTracingTracerRuleTest extends CamelTestSupport {
     final String expectedBody = "<matched/>";
 
     resultEndpoint.expectedBodiesReceived(expectedBody);
-
     template.sendBodyAndHeader(expectedBody, "foo", "bar");
-
     resultEndpoint.assertIsSatisfied();
 
     final List<MockSpan> spans = tracer.finishedSpans();
