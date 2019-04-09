@@ -12,4 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-io.opentracing.contrib.specialagent.rabbitmq.RabbitMQAgentRule
+io.opentracing.contrib.specialagent.thrift.ThriftProcessorAgentRule
+io.opentracing.contrib.specialagent.thrift.ThriftProtocolAgentRule
+io.opentracing.contrib.specialagent.thrift.ThriftProtocolFactoryAgentRule
