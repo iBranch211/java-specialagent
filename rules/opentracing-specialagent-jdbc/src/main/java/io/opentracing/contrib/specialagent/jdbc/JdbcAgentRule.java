@@ -26,26 +26,33 @@ import io.opentracing.contrib.specialagent.AgentRuleUtil;
 import io.opentracing.contrib.specialagent.EarlyReturnException;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.AgentBuilder.Identified.Narrowable;
+import net.bytebuddy.agent.builder.AgentBuilder.InitializationStrategy;
+import net.bytebuddy.agent.builder.AgentBuilder.RedefinitionStrategy;
 import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
+import net.bytebuddy.agent.builder.AgentBuilder.TypeStrategy;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.implementation.bytecode.assign.Assigner.Typing;
 import net.bytebuddy.utility.JavaModule;
 
-public class JdbcAgentRule extends AgentRule {
+public class JdbcAgentRule implements AgentRule {
   @Override
-  public Iterable<? extends AgentBuilder> buildAgent(final String agentArgs, final AgentBuilder builder) throws Exception {
-    final Narrowable narrowable = builder
+  public Iterable<? extends AgentBuilder> buildAgent(final String agentArgs) throws Exception {
+    final Narrowable builder = new AgentBuilder.Default()
+      .ignore(none())
+      .with(RedefinitionStrategy.RETRANSFORMATION)
+      .with(InitializationStrategy.NoOp.INSTANCE)
+      .with(TypeStrategy.Default.REDEFINE)
       .type(hasSuperType(named("java.sql.Driver")).and(not(named("io.opentracing.contrib.jdbc.TracingDriver"))));
 
     return Arrays.asList(
-      narrowable.transform(new Transformer() {
+      builder.transform(new Transformer() {
         @Override
         public Builder<?> transform(final Builder<?> builder, final TypeDescription typeDescription, final ClassLoader classLoader, final JavaModule module) {
           return builder.visit(Advice.to(OnEnter.class).on(not(isAbstract()).and(named("connect").and(takesArguments(String.class, Properties.class)))));
         }}),
-      narrowable.transform(new Transformer() {
+      builder.transform(new Transformer() {
         @Override
         public Builder<?> transform(final Builder<?> builder, final TypeDescription typeDescription, final ClassLoader classLoader, final JavaModule module) {
           return builder.visit(Advice.to(OnExit.class).on(not(isAbstract()).and(named("connect").and(takesArguments(String.class, Properties.class)))));
@@ -55,8 +62,8 @@ public class JdbcAgentRule extends AgentRule {
 
   public static class OnEnter {
     @Advice.OnMethodEnter
-    public static void enter(final @Advice.Origin String origin, @Advice.Argument(value = 0) String url, @Advice.Argument(value = 1) Properties info) throws Exception {
-      if (!AgentRuleUtil.isEnabled(origin))
+    public static void enter(@Advice.Argument(value = 0) String url, @Advice.Argument(value = 1) Properties info) throws Exception {
+      if (!AgentRuleUtil.isEnabled())
         return;
 
       final Connection connection = JdbcAgentIntercept.enter(url, info);

@@ -22,8 +22,8 @@ import net.bytebuddy.agent.builder.AgentBuilder;
  *
  * @author Seva Safris
  */
-public abstract class AgentRule {
-  public abstract Iterable<? extends AgentBuilder> buildAgent(String agentArgs, AgentBuilder builder) throws Exception;
-  // ElementMatcher<? super MethodDescription> onMethod();
-  // DynamicAdvice advice();
+public interface AgentRule {
+  abstract Iterable<? extends AgentBuilder> buildAgent(String agentArgs) throws Exception;
+//  ElementMatcher<? super MethodDescription> onMethod();
+//  DynamicAdvice advice();
 }

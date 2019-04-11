@@ -22,16 +22,23 @@ import java.util.Arrays;
 import io.opentracing.contrib.specialagent.AgentRule;
 import io.opentracing.contrib.specialagent.AgentRuleUtil;
 import net.bytebuddy.agent.builder.AgentBuilder;
+import net.bytebuddy.agent.builder.AgentBuilder.InitializationStrategy;
+import net.bytebuddy.agent.builder.AgentBuilder.RedefinitionStrategy;
 import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
+import net.bytebuddy.agent.builder.AgentBuilder.TypeStrategy;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.utility.JavaModule;
 
-public class CamelAgentRule extends AgentRule {
+public class CamelAgentRule implements AgentRule {
   @Override
-  public Iterable<? extends AgentBuilder> buildAgent(final String agentArgs, final AgentBuilder builder) throws Exception {
-    return Arrays.asList(builder
+  public Iterable<? extends AgentBuilder> buildAgent(final String agentArgs) throws Exception {
+    return Arrays.asList(new AgentBuilder.Default()
+      .ignore(none())
+      .with(RedefinitionStrategy.RETRANSFORMATION)
+      .with(InitializationStrategy.NoOp.INSTANCE)
+      .with(TypeStrategy.Default.REDEFINE)
       .type(named("org.apache.camel.impl.DefaultCamelContext"))
       .transform(new Transformer() {
         @Override
@@ -41,8 +48,8 @@ public class CamelAgentRule extends AgentRule {
   }
 
   @Advice.OnMethodEnter
-  public static void enter(final @Advice.Origin String origin, final @Advice.This Object thiz) {
-    if (AgentRuleUtil.isEnabled(origin))
+  public static void enter(final @Advice.This Object thiz) {
+    if (AgentRuleUtil.isEnabled())
       CamelAgentIntercept.enter(thiz);
   }
 }

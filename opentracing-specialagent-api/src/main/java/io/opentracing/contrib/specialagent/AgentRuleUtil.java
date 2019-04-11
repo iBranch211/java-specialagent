@@ -16,7 +16,6 @@
 package io.opentracing.contrib.specialagent;
 
 import java.lang.reflect.Array;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -27,8 +26,6 @@ import java.util.logging.Logger;
 public final class AgentRuleUtil {
   public static final Logger logger = Logger.getLogger(AgentRule.class.getName());
 
-  static ClassLoader tracerClassLoader;
-
   public static final ThreadLocal<Integer> latch = new ThreadLocal<Integer>() {
     @Override
     protected Integer initialValue() {
@@ -36,12 +33,8 @@ public final class AgentRuleUtil {
     }
   };
 
-  public static boolean isEnabled(final String origin) {
-    final boolean enabled = latch.get() == 0;
-    if (enabled && logger.isLoggable(Level.FINER))
-      logger.finer("-------> Intercept from: " + origin);
-
-    return enabled;
+  public static boolean isEnabled() {
+    return latch.get() == 0;
   }
 
   /**

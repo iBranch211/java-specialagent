@@ -370,7 +370,7 @@ class Link implements Serializable {
 
     @Override
     public String toString() {
-      return SpecialAgentUtil.toIndentedString(links.keySet());
+      return Util.toIndentedString(links.keySet());
     }
   }
 
@@ -390,7 +390,7 @@ class Link implements Serializable {
       else {
         final File file = new File(url.getPath());
         final Path path = file.toPath();
-        SpecialAgentUtil.recurseDir(file, new Predicate<File>() {
+        Util.recurseDir(file, new Predicate<File>() {
           @Override
           public boolean test(final File t) {
             if (t.isDirectory())
