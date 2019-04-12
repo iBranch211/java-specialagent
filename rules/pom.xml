@@ -44,6 +44,7 @@
     <module>opentracing-specialagent-kafka-client</module>
     <module>opentracing-specialagent-asynchttpclient</module>
     <module>opentracing-specialagent-rabbitmq-client</module>
+    <module>opentracing-specialagent-thrift</module>
   </modules>
   <profiles>
     <profile>
@@ -282,11 +283,6 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.awaitility</groupId>
-      <artifactId>awaitility</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

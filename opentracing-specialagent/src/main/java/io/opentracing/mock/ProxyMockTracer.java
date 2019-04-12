@@ -139,7 +139,6 @@ public class ProxyMockTracer extends MockTracer {
     }
 
     @Override
-    @Deprecated
     public ProxyMockScope startActive(final boolean finishSpanOnClose) {
       final Scope mockScope = super.startActive(finishSpanOnClose);
       final Scope realScope = realSpanBuilder.startActive(finishSpanOnClose);
