@@ -15,15 +15,18 @@
 
 package io.opentracing.contrib.specialagent.concurrent;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
-import io.opentracing.contrib.specialagent.AgentRunner;
-import io.opentracing.mock.MockTracer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import io.opentracing.contrib.specialagent.AgentRunner;
+import io.opentracing.mock.MockSpan;
+import io.opentracing.mock.MockTracer;
 
 /**
  * @author Pavol Loffay
@@ -36,10 +39,13 @@ public class ExecutorTest extends AbstractConcurrentTest {
 	public void testExecute(final MockTracer tracer) throws InterruptedException {
     final CountDownLatch countDownLatch = new CountDownLatch(1);
     final Executor executor = Executors.newFixedThreadPool(10);
-    executor.execute(new TestRunnable(tracer, countDownLatch));
+
+    final MockSpan parentSpan = tracer.buildSpan("foo").startManual();
+		tracer.scopeManager().activate(parentSpan, true);
+		executor.execute(new TestRunnable(tracer, countDownLatch));
 
 		countDownLatch.await();
-		assertEquals(3, tracer.finishedSpans().size());
-    assertParentSpan(tracer);
+		assertParentSpan(tracer, parentSpan);
+		assertEquals(1, tracer.finishedSpans().size());
 	}
 }

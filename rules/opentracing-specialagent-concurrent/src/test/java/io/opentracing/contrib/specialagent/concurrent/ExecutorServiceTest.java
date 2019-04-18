@@ -15,11 +15,8 @@
 
 package io.opentracing.contrib.specialagent.concurrent;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
-import io.opentracing.Scope;
-import io.opentracing.contrib.specialagent.AgentRunner;
-import io.opentracing.mock.MockTracer;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -27,8 +24,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import io.opentracing.contrib.specialagent.AgentRunner;
+import io.opentracing.mock.MockSpan;
+import io.opentracing.mock.MockTracer;
 
 /**
  * @author Pavol Loffay
@@ -44,10 +46,13 @@ public class ExecutorServiceTest extends AbstractConcurrentTest {
 	  final CountDownLatch countDownLatch = new CountDownLatch(1);
 	  final ExecutorService executorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
 
+	  final MockSpan parentSpan = tracer.buildSpan("foo").startManual();
+		tracer.scopeManager().activate(parentSpan, true);
 		executorService.execute(new TestRunnable(tracer, countDownLatch));
 
 		countDownLatch.await();
-		assertEquals(3, tracer.finishedSpans().size());
+		assertParentSpan(tracer, parentSpan);
+		assertEquals(1, tracer.finishedSpans().size());
 	}
 
 	@Test
@@ -55,11 +60,13 @@ public class ExecutorServiceTest extends AbstractConcurrentTest {
 	  final CountDownLatch countDownLatch = new CountDownLatch(1);
 	  final ExecutorService executorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
 
-  	executorService.submit(new TestRunnable(tracer, countDownLatch));
+	  final MockSpan parentSpan = tracer.buildSpan("foo").startManual();
+		tracer.scopeManager().activate(parentSpan, true);
+		executorService.submit(new TestRunnable(tracer, countDownLatch));
 
 		countDownLatch.await();
-		assertEquals(3, tracer.finishedSpans().size());
-		assertParentSpan(tracer);
+		assertParentSpan(tracer, parentSpan);
+		assertEquals(1, tracer.finishedSpans().size());
 	}
 
 	@Test
@@ -67,11 +74,13 @@ public class ExecutorServiceTest extends AbstractConcurrentTest {
 	  final CountDownLatch countDownLatch = new CountDownLatch(1);
 		final ExecutorService executorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
 
+		final MockSpan parentSpan = tracer.buildSpan("foo").startManual();
+		tracer.scopeManager().activate(parentSpan, true);
 		executorService.submit(new TestRunnable(tracer, countDownLatch), new Object());
 
 		countDownLatch.await();
-		assertEquals(3, tracer.finishedSpans().size());
-		assertParentSpan(tracer);
+		assertParentSpan(tracer, parentSpan);
+		assertEquals(1, tracer.finishedSpans().size());
 	}
 
 	@Test
@@ -79,41 +88,41 @@ public class ExecutorServiceTest extends AbstractConcurrentTest {
 	  final CountDownLatch countDownLatch = new CountDownLatch(1);
 	  final ExecutorService executorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
 
+	  final MockSpan parentSpan = tracer.buildSpan("foo").startManual();
+		tracer.scopeManager().activate(parentSpan, true);
 		executorService.submit(new TestCallable(tracer, countDownLatch));
 
 		countDownLatch.await();
-		assertEquals(3, tracer.finishedSpans().size());
-		assertParentSpan(tracer);
+		assertParentSpan(tracer, parentSpan);
+		assertEquals(1, tracer.finishedSpans().size());
 	}
 
 	@Test
 	public void testInvokeAll(final MockTracer tracer) throws InterruptedException {
 	  final ExecutorService executorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
-		final CountDownLatch countDownLatch = new CountDownLatch(2);
 
-		try (Scope scope = tracer.buildSpan("parent").startActive(true)) {
-			executorService.invokeAll(Arrays.asList(new TestCallable(tracer, countDownLatch),
-					new TestCallable(tracer, countDownLatch)));
-		}
+	  final MockSpan parentSpan = tracer.buildSpan("foo").startManual();
+		tracer.scopeManager().activate(parentSpan, true);
+		final CountDownLatch countDownLatch = new CountDownLatch(2);
+		executorService.invokeAll(Arrays.asList(new TestCallable(tracer, countDownLatch), new TestCallable(tracer, countDownLatch)));
 
 		countDownLatch.await();
-		assertEquals(7, tracer.finishedSpans().size());
-		assertParentSpan(tracer);
+		assertParentSpan(tracer, parentSpan);
+		assertEquals(2, tracer.finishedSpans().size());
 	}
 
 	@Test
 	public void testInvokeAllTimeUnit(final MockTracer tracer) throws InterruptedException {
 	  final ExecutorService executorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
-		final CountDownLatch countDownLatch = new CountDownLatch(2);
 
-		try (Scope scope = tracer.buildSpan("parent").startActive(true)) {
-			executorService.invokeAll(Arrays.asList(new TestCallable(tracer, countDownLatch),
-					new TestCallable(tracer, countDownLatch)), 1, TimeUnit.SECONDS);
-		}
+	  final MockSpan parentSpan = tracer.buildSpan("foo").startManual();
+		tracer.scopeManager().activate(parentSpan, true);
+		final CountDownLatch countDownLatch = new CountDownLatch(2);
+		executorService.invokeAll(Arrays.asList(new TestCallable(tracer, countDownLatch), new TestCallable(tracer, countDownLatch)), 1, TimeUnit.SECONDS);
 
 		countDownLatch.await();
-		assertEquals(7, tracer.finishedSpans().size());
-		assertParentSpan(tracer);
+		assertParentSpan(tracer, parentSpan);
+		assertEquals(2, tracer.finishedSpans().size());
 	}
 
 	@Test
@@ -121,12 +130,13 @@ public class ExecutorServiceTest extends AbstractConcurrentTest {
 	  final CountDownLatch countDownLatch = new CountDownLatch(1);
 	  final ExecutorService executorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
 
-		executorService
-					.invokeAny(Arrays.asList(new TestCallable(tracer, countDownLatch)), 1, TimeUnit.SECONDS);
+	  final MockSpan parentSpan = tracer.buildSpan("foo").startManual();
+		tracer.scopeManager().activate(parentSpan, true);
+		executorService.invokeAny(Arrays.asList(new TestCallable(tracer, countDownLatch)), 1, TimeUnit.SECONDS);
 
 		countDownLatch.await();
-		assertEquals(3, tracer.finishedSpans().size());
-		assertParentSpan(tracer);
+		assertParentSpan(tracer, parentSpan);
+		assertEquals(1, tracer.finishedSpans().size());
 	}
 
 	@Test
@@ -134,10 +144,12 @@ public class ExecutorServiceTest extends AbstractConcurrentTest {
 	  final CountDownLatch countDownLatch = new CountDownLatch(1);
 	  final ExecutorService executorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
 
+	  final MockSpan parentSpan = tracer.buildSpan("foo").startManual();
+		tracer.scopeManager().activate(parentSpan, true);
 		executorService.invokeAny(Arrays.asList(new TestCallable(tracer, countDownLatch)));
 
 		countDownLatch.await();
-		assertEquals(3, tracer.finishedSpans().size());
-		assertParentSpan(tracer);
+		assertParentSpan(tracer, parentSpan);
+		assertEquals(1, tracer.finishedSpans().size());
 	}
 }
