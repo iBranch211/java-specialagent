@@ -12,21 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.opentracing.contrib.specialagent.concurrent;
 
-package io.opentracing.contrib.specialagent;
+public class ConcurrentAgentMode {
+  static final String CONCURRENT_VERBOSE_MODE = "sa.concurrent.verbose";
 
-/**
- * Represents an operation that accepts a single input argument and returns no
- * result. Unlike most other functional interfaces, {@code Consumer} is expected
- * to operate via side-effects.
- *
- * @param <T> The type of the input to the operation.
- */
-public interface Consumer<T> {
-  /**
-   * Performs this operation on the given argument.
-   *
-   * @param t The input argument.
-   */
-  void accept(T t);
+  public static boolean isVerbose() {
+    return "true".equalsIgnoreCase(System.getProperty(CONCURRENT_VERBOSE_MODE));
+  }
 }
