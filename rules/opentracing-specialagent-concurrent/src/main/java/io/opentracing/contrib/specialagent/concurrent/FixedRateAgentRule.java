@@ -15,18 +15,17 @@
 
 package io.opentracing.contrib.specialagent.concurrent;
 
-import static net.bytebuddy.matcher.ElementMatchers.isSubTypeOf;
-import static net.bytebuddy.matcher.ElementMatchers.named;
-import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
+import static net.bytebuddy.matcher.ElementMatchers.*;
 
-import io.opentracing.Span;
-import io.opentracing.contrib.specialagent.AgentRule;
-import io.opentracing.contrib.specialagent.AgentRuleUtil;
-import io.opentracing.tag.Tags;
-import io.opentracing.util.GlobalTracer;
 import java.util.Arrays;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import io.opentracing.Tracer;
+import io.opentracing.contrib.concurrent.TracedRunnable;
+import io.opentracing.contrib.specialagent.AgentRule;
+import io.opentracing.contrib.specialagent.AgentRuleUtil;
+import io.opentracing.util.GlobalTracer;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
 import net.bytebuddy.asm.Advice;
@@ -48,17 +47,12 @@ public class FixedRateAgentRule extends AgentRule {
   }
 
   @Advice.OnMethodEnter
-  public static void enter(final @Advice.Origin String origin, @Advice.Argument(value = 0, readOnly = false, typing = Typing.DYNAMIC) Runnable arg) throws Exception {
+  public static void exit(final @Advice.Origin String origin, @Advice.Argument(value = 0, readOnly = false, typing = Typing.DYNAMIC) Runnable arg) throws Exception {
     if (!AgentRuleUtil.isEnabled(origin))
       return;
 
-    if (ConcurrentAgentMode.isVerbose()) {
-      Span span = GlobalTracer.get().buildSpan("scheduleAtFixedRate")
-          .withTag(Tags.COMPONENT, "java-concurrent").start();
-      arg = new TracedRunnable(arg, span, true);
-      span.finish();
-    } else if (GlobalTracer.get().activeSpan() != null) {
-      arg = new TracedRunnable(arg, GlobalTracer.get().activeSpan(), false);
-    }
+    final Tracer tracer = GlobalTracer.get();
+    if (tracer.activeSpan() != null)
+      arg = new TracedRunnable(arg, tracer);
   }
 }
