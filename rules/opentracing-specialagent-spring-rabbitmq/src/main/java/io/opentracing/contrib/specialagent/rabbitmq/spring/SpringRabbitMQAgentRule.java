@@ -1,4 +1,4 @@
-/* Copyright 2018 The OpenTracing Authors
+/* Copyright 2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,46 +12,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package io.opentracing.contrib.specialagent.concurrent;
+package io.opentracing.contrib.specialagent.rabbitmq.spring;
 
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
 import java.util.Arrays;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
-import io.opentracing.Tracer;
-import io.opentracing.contrib.concurrent.TracedRunnable;
 import io.opentracing.contrib.specialagent.AgentRule;
-import io.opentracing.util.GlobalTracer;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType.Builder;
-import net.bytebuddy.implementation.bytecode.assign.Assigner.Typing;
 import net.bytebuddy.utility.JavaModule;
 
-public class ScheduledRunnableAgentRule extends AgentRule {
+public class SpringRabbitMQAgentRule extends AgentRule {
   @Override
   public Iterable<? extends AgentBuilder> buildAgent(final String agentArgs, final AgentBuilder builder) throws Exception {
     return Arrays.asList(builder
-      .type(isSubTypeOf(ScheduledExecutorService.class))
+      .type(hasSuperType(named("org.springframework.amqp.core.MessageListener")))
       .transform(new Transformer() {
         @Override
         public Builder<?> transform(final Builder<?> builder, final TypeDescription typeDescription, final ClassLoader classLoader, final JavaModule module) {
-          return builder.visit(Advice.to(ScheduledRunnableAgentRule.class).on(named("schedule").and(takesArguments(Runnable.class, long.class, TimeUnit.class))));
+          return builder.visit(Advice.to(SpringRabbitMQAgentRule.class).on(named("onMessage")));
         }}));
   }
 
   @Advice.OnMethodEnter
-  public static void exit(final @Advice.Origin String origin, @Advice.Argument(value = 0, readOnly = false, typing = Typing.DYNAMIC) Runnable arg) throws Exception {
-    if (!isEnabled(origin))
-      return;
+  public static void enter(final @Advice.Origin String origin, final @Advice.Argument(value = 0) Object message) {
+    if (isEnabled(origin))
+      SpringRabbitMQAgentIntercept.onMessageEnter(message);
+  }
 
-    final Tracer tracer = GlobalTracer.get();
-    if (tracer.activeSpan() != null)
-      arg = new TracedRunnable(arg, tracer);
+  @Advice.OnMethodExit
+  public static void exit(final @Advice.Origin String origin) {
+    if (isEnabled(origin))
+      SpringRabbitMQAgentIntercept.onMessageExit();
   }
 }

@@ -12,12 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.opentracing.contrib.specialagent.concurrent;
 
-public class ConcurrentAgentMode {
-  static final String CONCURRENT_VERBOSE_MODE = "sa.concurrent.verbose";
+package io.opentracing.contrib.specialagent.thrift;
 
-  public static boolean isVerbose() {
-    return "true".equalsIgnoreCase(System.getProperty(CONCURRENT_VERBOSE_MODE));
+import org.apache.thrift.TProcessor;
+
+import io.opentracing.thrift.SpanProcessor;
+
+public class ThriftProcessorAgentIntercept {
+  public static Object getProcessor(final Object processor) {
+    return new SpanProcessor((TProcessor)processor);
   }
 }

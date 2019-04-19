@@ -75,8 +75,10 @@ _<ins>Instrumentation Rules</ins> **ARE** coupled to the <ins>SpecialAgent</ins>
 12. [Kafka Client](https://github.com/opentracing-contrib/java-kafka-client)
 13. [AsyncHttpClient](https://github.com/opentracing-contrib/java-asynchttpclient)
 14. [RabbitMQ Client](https://github.com/opentracing-contrib/java-rabbitmq-client)
-15. [GRPC](https://github.com/opentracing-contrib/java-grpc)
-16. [Jedis 2 Client](https://github.com/opentracing-contrib/java-redis-client/tree/master/opentracing-redis-jedis)
+15. [RabbitMQ Spring](https://github.com/opentracing-contrib/java-spring-rabbitmq)
+16. [Thrift](https://github.com/opentracing-contrib/java-thrift)
+17. [GRPC](https://github.com/opentracing-contrib/java-grpc)
+18. [Jedis 2 Client](https://github.com/opentracing-contrib/java-redis-client/tree/master/opentracing-redis-jedis)
 
 ## Goals
 
@@ -158,8 +160,6 @@ The <ins>SpecialAgent</ins> exposes a simple pattern for configuration of <ins>S
 3. The `-Dconfig=${PROPERTIES_FILE}` command-line argument can be specified to have the <ins>SpecialAgent</ins> load property names from a `${PROPERTIES_FILE}`. Properties defined in the `${PROPERTIES_FILE}` override same-named properties defined in the layer below.
 
 4. The <ins>SpecialAgent</ins> has a `default.properties` file that defines default values for properties that need to be defined.
-
-5. Concurrent plugin supports verbose mode which is disabled by default. To enable set `sa.concurrent.verbose=true`. In non verbose mode parent span context (if exists) is propagating to task execution. In verbose mode parent span is always created on task submission to executor and child span is created when task is started.
 
 ### Selecting the <ins>Tracer Plugin</ins>
 
