@@ -30,7 +30,8 @@ import io.opentracing.Span;
 import io.opentracing.Tracer;
 
 /**
- * Test class to validate proper functioning of {@link ClassLoaderAgent}.
+ * Test class to validate proper functioning of {@link ClassLoaderAgent} and
+ * {@code classloader.btm}.
  *
  * @author Seva Safris
  */

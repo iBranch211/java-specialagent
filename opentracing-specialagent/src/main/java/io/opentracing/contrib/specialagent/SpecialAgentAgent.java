@@ -103,11 +103,11 @@ public class SpecialAgentAgent {
             returned = SpecialAgentUtil.readBytes(resource);
         }
 
-        if (AgentRule.logger.isLoggable(Level.FINEST))
-          AgentRule.logger.finest("<<<<<<< Agent#findClass(" + (classLoader == null ? "null" : classLoader.getClass().getName() + "@" + Integer.toString(System.identityHashCode(classLoader), 16)) + "," + arg + "): " + returned);
+        if (AgentRuleUtil.logger.isLoggable(Level.FINEST))
+          AgentRuleUtil.logger.finest("<<<<<<< Agent#findClass(" + (classLoader == null ? "null" : classLoader.getClass().getName() + "@" + Integer.toString(System.identityHashCode(classLoader), 16)) + "," + arg + "): " + returned);
       }
       catch (final Throwable t) {
-        AgentRule.logger.log(Level.SEVERE, "<><><><> AgentAgent.FindClass#exit", t);
+        AgentRuleUtil.logger.log(Level.SEVERE, "<><><><> AgentAgent.FindClass#exit", t);
       }
     }
   }
@@ -128,11 +128,11 @@ public class SpecialAgentAgent {
           returned = ruleClassLoader.findResource(arg);
         }
 
-        if (AgentRule.logger.isLoggable(Level.FINEST))
-          AgentRule.logger.finest("<<<<<<< Agent#findResource(" + (classLoader == null ? "null" : classLoader.getClass().getName() + "@" + Integer.toString(System.identityHashCode(classLoader), 16)) + "," + arg + "): " + returned);
+        if (AgentRuleUtil.logger.isLoggable(Level.FINEST))
+          AgentRuleUtil.logger.finest("<<<<<<< Agent#findResource(" + (classLoader == null ? "null" : classLoader.getClass().getName() + "@" + Integer.toString(System.identityHashCode(classLoader), 16)) + "," + arg + "): " + returned);
       }
       catch (final Throwable t) {
-        AgentRule.logger.log(Level.SEVERE, "<><><><> AgentAgent.FindResource#exit", t);
+        AgentRuleUtil.logger.log(Level.SEVERE, "<><><><> AgentAgent.FindResource#exit", t);
       }
     }
   }
@@ -154,11 +154,11 @@ public class SpecialAgentAgent {
           returned.hasMoreElements(); // For some reason, if I don't call this, the returned value does not have any elements!!!!
         }
 
-        if (AgentRule.logger.isLoggable(Level.FINEST))
-          AgentRule.logger.finest("<<<<<<< Agent#findResources(" + (classLoader == null ? "null" : classLoader.getClass().getName() + "@" + Integer.toString(System.identityHashCode(classLoader), 16)) + "," + arg + "): " + returned);
+        if (AgentRuleUtil.logger.isLoggable(Level.FINEST))
+          AgentRuleUtil.logger.finest("<<<<<<< Agent#findResources(" + (classLoader == null ? "null" : classLoader.getClass().getName() + "@" + Integer.toString(System.identityHashCode(classLoader), 16)) + "," + arg + "): " + returned);
       }
       catch (final Throwable t) {
-        AgentRule.logger.log(Level.SEVERE, "<><><><> AgentAgent.FindResources#exit", t);
+        AgentRuleUtil.logger.log(Level.SEVERE, "<><><><> AgentAgent.FindResources#exit", t);
       }
     }
   }

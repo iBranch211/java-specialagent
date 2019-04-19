@@ -20,6 +20,7 @@ import static net.bytebuddy.matcher.ElementMatchers.*;
 import java.util.Arrays;
 
 import io.opentracing.contrib.specialagent.AgentRule;
+import io.opentracing.contrib.specialagent.AgentRuleUtil;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
 import net.bytebuddy.asm.Advice;
@@ -42,7 +43,7 @@ public class AsyncHttpClientAgentRule extends AgentRule {
 
   @Advice.OnMethodEnter
   public static void enter(final @Advice.Origin String origin, final @Advice.Argument(value = 0, typing = Typing.DYNAMIC) Object request, @Advice.Argument(value = 1, readOnly = false, typing = Typing.DYNAMIC) Object handler) {
-    if (isEnabled(origin))
+    if (AgentRuleUtil.isEnabled(origin))
       handler = AsyncHttpClientAgentIntercept.enter(request, handler);
   }
 }
