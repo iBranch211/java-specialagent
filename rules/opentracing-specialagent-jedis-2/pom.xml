@@ -13,46 +13,35 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
+<project
+  xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
-    <groupId>io.opentracing.contrib.specialagent.rules</groupId>
     <artifactId>rules</artifactId>
+    <groupId>io.opentracing.contrib.specialagent.rules</groupId>
     <version>1.1.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>opentracing-specialagent-rabbitmq-client</artifactId>
-  <name>SpecialAgent Rule for RabbitMQ Client</name>
-  <url>https://github.com/opentracing-contrib/java-specialagent/tree/master/rules/opentracing-specialagent-rabbitmq-client</url>
+  <artifactId>opentracing-specialagent-jedis-2</artifactId>
+  <name>SpecialAgent Rule for Jedis 2</name>
+  <url>https://github.com/opentracing-contrib/java-specialagent/tree/master/rules/opentracing-specialagent-jedis-2</url>
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
   <dependencies>
-    <!-- https://github.com/opentracing-contrib/java-rabbitmq-client -->
     <dependency>
-      <groupId>io.opentracing.contrib</groupId>
-      <artifactId>opentracing-rabbitmq-client</artifactId>
-      <version>0.1.1</version>
-      <exclusions>
-        <exclusion>
-          <groupId>com.rabbitmq</groupId>
-          <artifactId>amqp-client</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.rabbitmq</groupId>
-      <artifactId>amqp-client</artifactId>
-      <version>5.6.0</version>
+      <groupId>redis.clients</groupId>
+      <artifactId>jedis</artifactId>
+      <version>2.10.2</version>
       <optional>true</optional>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.qpid</groupId>
-      <artifactId>qpid-broker</artifactId>
-      <version>7.1.0</version>
+      <groupId>com.github.kstyrc</groupId>
+      <artifactId>embedded-redis</artifactId>
+      <version>0.6</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
