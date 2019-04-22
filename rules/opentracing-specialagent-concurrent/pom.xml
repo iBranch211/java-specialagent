@@ -21,9 +21,17 @@
   <parent>
     <groupId>io.opentracing.contrib.specialagent.rules</groupId>
     <artifactId>rules</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.1.1-SNAPSHOT</version>
   </parent>
   <artifactId>opentracing-specialagent-concurrent</artifactId>
   <name>SpecialAgent Rule for Java Concurrent</name>
   <url>https://github.com/opentracing-contrib/java-specialagent/tree/master/rules/opentracing-specialagent-concurrent</url>
+  <dependencies>
+    <dependency>
+      <!-- https://github.com/opentracing-contrib/java-concurrent -->
+      <groupId>io.opentracing.contrib</groupId>
+      <artifactId>opentracing-concurrent</artifactId>
+      <version>0.2.1</version>
+    </dependency>
+  </dependencies>
 </project>

@@ -15,11 +15,16 @@
 
 package io.opentracing.contrib.specialagent.concurrent;
 
-import io.opentracing.Tracer;
-import io.opentracing.mock.MockTracer;
+import static org.junit.Assert.*;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+
 import org.junit.Before;
+
+import io.opentracing.Tracer;
+import io.opentracing.mock.MockSpan;
+import io.opentracing.mock.MockTracer;
 
 /**
  * @author Pavol Loffay
@@ -27,6 +32,20 @@ import org.junit.Before;
  * @author Seva Safris
  */
 public abstract class AbstractConcurrentTest {
+  protected void assertParentSpan(final MockTracer tracer, final MockSpan parent) {
+    for (final MockSpan child : tracer.finishedSpans()) {
+      if (child == parent)
+        continue;
+
+      if (parent == null) {
+        assertEquals(0, child.parentId());
+      }
+      else {
+        assertEquals(parent.context().traceId(), child.context().traceId());
+        assertEquals(parent.context().spanId(), child.parentId());
+      }
+    }
+  }
 
   @Before
   public void reset(final MockTracer tracer) {
@@ -45,7 +64,7 @@ public abstract class AbstractConcurrentTest {
     @Override
     public void run() {
       try {
-        tracer.buildSpan("childRunnable").start().finish();
+        tracer.buildSpan("childRunnable").startActive(true).close();
       }
       finally {
         countDownLatch.countDown();
@@ -63,9 +82,9 @@ public abstract class AbstractConcurrentTest {
     }
 
     @Override
-    public Void call() {
+    public Void call() throws Exception {
       try {
-        tracer.buildSpan("childCallable").start().finish();
+        tracer.buildSpan("childCallable").startActive(true).close();
         return null;
       }
       finally {
