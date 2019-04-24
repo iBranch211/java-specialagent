@@ -47,7 +47,6 @@ public class AgentRunnerUtil {
    *         test process, or {@code null} if the {@code "-javaagent"} argument
    *         is not specified for the current process.
    */
-  @SuppressWarnings("resource")
   public static Tracer getTracer() {
     if (tracer != null)
       return tracer;
@@ -70,7 +69,11 @@ public class AgentRunnerUtil {
             tracer = new ProxyMockTracer((MockTracer)registered, deferredTracer);
           }
           else {
-            throw new IllegalStateException("There is already a registered global Tracer.");
+            // NOTE: This is guaranteed to fail, and is implemented this way to
+            // NOTE: use GlobalTracer's own error checking mechanism to disallow
+            // NOTE: 2 non-MockTracer tracers from being registered.
+            GlobalTracer.register(deferredTracer);
+            throw new IllegalStateException("Should have failed on the previous line");
           }
 
           field.set(null, tracer);
@@ -81,8 +84,7 @@ public class AgentRunnerUtil {
       }
       else {
         tracer = deferredTracer != null ? new ProxyMockTracer(deferredTracer) : new MockTracer();
-        if (!GlobalTracer.registerIfAbsent(tracer))
-          throw new IllegalStateException("There is already a registered global Tracer.");
+        GlobalTracer.register(tracer);
       }
 
       if (logger.isLoggable(Level.FINEST)) {
