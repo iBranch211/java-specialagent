@@ -15,26 +15,17 @@
 
 package io.opentracing.contrib.specialagent.okhttp;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import io.opentracing.contrib.okhttp3.OkHttpClientSpanDecorator;
 import io.opentracing.contrib.okhttp3.TracingInterceptor;
 import io.opentracing.util.GlobalTracer;
-import okhttp3.Interceptor;
 
 public class OkHttpAgentIntercept {
-  @SuppressWarnings("unchecked")
-  public static Object exit(final Object returned) {
-    final List<Interceptor> interceptors = (List<Interceptor>)returned;
-    for (final Interceptor interceptor : interceptors)
-      if (interceptor instanceof TracingInterceptor)
-        return returned;
-
-    final List<Interceptor> newInterceptors = new ArrayList<>(interceptors);
+  public static void enter(final Object thiz) {
+    final okhttp3.OkHttpClient.Builder builder = (okhttp3.OkHttpClient.Builder)thiz;
     final TracingInterceptor interceptor = new TracingInterceptor(GlobalTracer.get(), Collections.singletonList(OkHttpClientSpanDecorator.STANDARD_TAGS));
-    newInterceptors.add(0, interceptor);
-    return Collections.unmodifiableList(newInterceptors);
+    builder.addInterceptor(interceptor);
+    builder.addNetworkInterceptor(interceptor);
   }
 }

@@ -21,9 +21,9 @@ import java.util.Arrays;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import io.opentracing.Span;
+import io.opentracing.Tracer;
+import io.opentracing.contrib.concurrent.TracedRunnable;
 import io.opentracing.contrib.specialagent.AgentRule;
-import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
@@ -50,13 +50,8 @@ public class FixedRateAgentRule extends AgentRule {
     if (!isEnabled(origin))
       return;
 
-    if (ConcurrentAgentMode.isVerbose()) {
-      final Span span = GlobalTracer.get().buildSpan("scheduleAtFixedRate").withTag(Tags.COMPONENT, "java-concurrent").start();
-      arg = new TracedRunnable(arg, span, true);
-      span.finish();
-    }
-    else if (GlobalTracer.get().activeSpan() != null) {
-      arg = new TracedRunnable(arg, GlobalTracer.get().activeSpan(), false);
-    }
+    final Tracer tracer = GlobalTracer.get();
+    if (tracer.activeSpan() != null)
+      arg = new TracedRunnable(arg, tracer);
   }
 }

@@ -16,13 +16,11 @@
 package io.opentracing.contrib.specialagent.webservletfilter;
 
 import java.util.EnumSet;
-import java.util.logging.Level;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;
 
-import io.opentracing.contrib.specialagent.AgentRule;
 import io.opentracing.contrib.web.servlet.filter.TracingFilter;
 import io.opentracing.util.GlobalTracer;
 
@@ -34,13 +32,8 @@ public class ServletContextAgentIntercept {
       return;
 
     final TracingFilter filter = new TracingFilter(GlobalTracer.get());
-    try {
-      final FilterRegistration.Dynamic registration = ((ServletContext)thiz).addFilter("tracingFilter", filter);
-      if (registration != null)
-        registration.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, patterns);
-    }
-    catch (final UnsupportedOperationException e) {
-      AgentRule.logger.log(Level.WARNING, e.getMessage(), e);
-    }
+    final FilterRegistration.Dynamic registration = ((ServletContext)thiz).addFilter("tracingFilter", filter);
+    if (registration != null)
+      registration.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, patterns);
   }
 }

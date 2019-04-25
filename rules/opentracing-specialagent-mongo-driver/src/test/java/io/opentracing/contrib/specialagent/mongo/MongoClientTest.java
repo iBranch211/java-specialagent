@@ -53,19 +53,20 @@ public class MongoClientTest {
     final InetSocketAddress serverAddress = server.bind();
 
     try {
-      final MongoClientSettings mongoSettings = MongoClientSettings.builder().applyToClusterSettings(new Block<ClusterSettings.Builder>() {
+      MongoClientSettings mongoSettings = MongoClientSettings.builder().applyToClusterSettings(new Block<ClusterSettings.Builder>() {
         @Override
         public void apply(final ClusterSettings.Builder builder) {
           builder.hosts(Arrays.asList(new ServerAddress(serverAddress)));
         }
       }).build();
 
-      try (final MongoClient mongoClient = MongoClients.create(mongoSettings)) {
-        final MongoCollection<Document> collection = mongoClient.getDatabase("MyDB").getCollection("MyCollection");
-        final Document myDocument = new Document("name", "MyDocument");
-        collection.insertOne(myDocument);
-        collection.find().first();
-      }
+      final MongoClient mongoClient = MongoClients.create(mongoSettings);
+
+      final MongoCollection<Document> collection = mongoClient.getDatabase("MyDB").getCollection("MyCollection");
+      final Document myDocument = new Document("name", "MyDocument");
+      collection.insertOne(myDocument);
+      collection.find().first();
+      mongoClient.close();
 
       final List<MockSpan> spans = tracer.finishedSpans();
       assertEquals(2, spans.size());
