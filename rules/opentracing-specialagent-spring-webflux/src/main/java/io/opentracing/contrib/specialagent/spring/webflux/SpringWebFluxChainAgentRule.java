@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package io.opentracing.contrib.specialagent.lettuce;
+package io.opentracing.contrib.specialagent.spring.webflux;
 
 import static net.bytebuddy.matcher.ElementMatchers.hasSuperType;
 import static net.bytebuddy.matcher.ElementMatchers.named;
@@ -28,24 +27,28 @@ import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.implementation.bytecode.assign.Assigner.Typing;
 import net.bytebuddy.utility.JavaModule;
 
-public class LettuceClusterAgentRule extends AgentRule {
+public class SpringWebFluxChainAgentRule extends AgentRule {
   @Override
-  public Iterable<? extends AgentBuilder> buildAgent(final AgentBuilder builder) {
+  public Iterable<? extends AgentBuilder> buildAgent(final AgentBuilder builder) throws Exception {
     return Arrays.asList(builder
-        .type(hasSuperType(named("io.lettuce.core.cluster.api.StatefulRedisClusterConnection")))
+        .type(hasSuperType(named("org.springframework.web.server.handler.DefaultWebFilterChain")))
         .transform(new Transformer() {
           @Override
-          public Builder<?> transform(final Builder<?> builder, final TypeDescription typeDescription, final ClassLoader classLoader, final JavaModule module) {
-            return builder.visit(Advice.to(LettuceClusterAgentRule.class).on(named("async")));
+          public Builder<?> transform(final Builder<?> builder,
+              final TypeDescription typeDescription, final ClassLoader classLoader,
+              final JavaModule module) {
+            return builder
+                .visit(Advice.to(SpringWebFluxChainAgentRule.class).on(named("initChain")));
           }
         }));
   }
 
   @Advice.OnMethodExit
-  public static void exit(final @Advice.Origin String origin, @Advice.Return(readOnly = false, typing = Typing.DYNAMIC) Object returned) {
-    if (isEnabled(origin))
-      returned = LettuceAgentIntercept.getAsyncClusterCommands(returned);
+  public static void enter(final @Advice.Origin String origin, @Advice.Return(readOnly = false,
+      typing = Typing.DYNAMIC) Object returned) {
+    if (isEnabled(origin)) {
+      returned = SpringWebFluxAgentIntercept.ept(returned);
+    }
 
   }
-
 }
