@@ -181,7 +181,13 @@
         </dependency>
         <dependency>
           <groupId>io.opentracing.contrib.specialagent.rules</groupId>
-          <artifactId>opentracing-specialagent-lettuce</artifactId>
+          <artifactId>opentracing-specialagent-spring-web</artifactId>
+          <version>${project.version}</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>io.opentracing.contrib.specialagent.rules</groupId>
+          <artifactId>opentracing-specialagent-spring-webmvc</artifactId>
           <version>${project.version}</version>
           <scope>provided</scope>
         </dependency>
