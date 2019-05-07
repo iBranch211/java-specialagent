@@ -52,7 +52,6 @@
     <module>opentracing-specialagent-lettuce</module>
     <module>opentracing-specialagent-spring-web</module>
     <module>opentracing-specialagent-spring-webmvc</module>
-    <module>opentracing-specialagent-spring-webflux</module>
   </modules>
   <profiles>
     <profile>
