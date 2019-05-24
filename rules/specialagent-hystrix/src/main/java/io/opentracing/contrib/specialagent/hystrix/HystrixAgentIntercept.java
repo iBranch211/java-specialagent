@@ -13,22 +13,19 @@
  * limitations under the License.
  */
 
-package io.opentracing.contrib.specialagent.zuul;
+package io.opentracing.contrib.specialagent.hystrix;
 
-import com.netflix.zuul.ZuulFilter;
+import feign.opentracing.hystrix.TracingConcurrencyStrategy;
 import io.opentracing.util.GlobalTracer;
-import java.util.List;
 
-public class ZuulAgentIntercept {
+public class HystrixAgentIntercept {
+  private static volatile boolean registered;
 
-  public static Object exit(Object returned, Object arg) {
-    List<ZuulFilter> filters = (List<ZuulFilter>) returned;
-    if (arg.equals(TracePreZuulFilter.TYPE)) {
-      filters.add(new TracePreZuulFilter(GlobalTracer.get()));
+  public static void exit() {
+    if (registered)
+      return;
 
-    } else if (arg.equals(TracePostZuulFilter.TYPE)) {
-      filters.add(new TracePostZuulFilter());
-    }
-    return returned;
+    registered = true;
+    TracingConcurrencyStrategy.register(GlobalTracer.get());
   }
 }

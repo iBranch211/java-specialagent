@@ -13,36 +13,35 @@
  * limitations under the License.
  */
 
-package io.opentracing.contrib.specialagent.zuul;
+package io.opentracing.contrib.specialagent.hystrix;
 
-import static net.bytebuddy.matcher.ElementMatchers.named;
-import static net.bytebuddy.matcher.ElementMatchers.returns;
+import static net.bytebuddy.matcher.ElementMatchers.*;
+
+import java.util.Arrays;
 
 import io.opentracing.contrib.specialagent.AgentRule;
-import java.util.Arrays;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType.Builder;
-import net.bytebuddy.implementation.bytecode.assign.Assigner.Typing;
 import net.bytebuddy.utility.JavaModule;
 
-public class ZuulAgentRule extends AgentRule {
+public class HystrixAgentRule extends AgentRule {
   @Override
   public Iterable<? extends AgentBuilder> buildAgent(final AgentBuilder builder) {
     return Arrays.asList(builder
-      .type(named("com.netflix.zuul.FilterLoader"))
+      .type(named("com.netflix.hystrix.strategy.HystrixPlugins"))
       .transform(new Transformer() {
         @Override
         public Builder<?> transform(final Builder<?> builder, final TypeDescription typeDescription, final ClassLoader classLoader, final JavaModule module) {
-          return builder.visit(Advice.to(ZuulAgentRule.class).on(named("getFiltersByType")));
+          return builder.visit(Advice.to(HystrixAgentRule.class).on(isStatic().and(named("getInstance"))));
         }}));
   }
 
   @Advice.OnMethodExit
-  public static void exit(final @Advice.Origin String origin, @Advice.Return(typing = Typing.DYNAMIC) Object returned, @Advice.Argument(value = 0, typing = Typing.DYNAMIC) Object arg) {
+  public static void exit(final @Advice.Origin String origin) {
     if (isEnabled(origin))
-      ZuulAgentIntercept.exit(returned, arg);
+      HystrixAgentIntercept.exit();
   }
 }

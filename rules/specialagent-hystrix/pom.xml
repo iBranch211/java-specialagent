@@ -23,39 +23,55 @@
     <artifactId>rules</artifactId>
     <version>1.2.0-SNAPSHOT</version>
   </parent>
-  <artifactId>specialagent-feign</artifactId>
-  <name>SpecialAgent Rule for Feign</name>
-  <url>https://github.com/opentracing-contrib/java-specialagent/tree/master/rules/specialagent-feign</url>
+  <artifactId>specialagent-hystrix</artifactId>
+  <name>SpecialAgent Rule for Hystrix</name>
+  <url>https://github.com/opentracing-contrib/java-specialagent/tree/master/rules/specialagent-hystrix</url>
   <properties>
-    <feign.version>10.2.3</feign.version>
+    <sa.plugin.name>hystrix</sa.plugin.name>
+    <opentracing.feign.version>0.3.0</opentracing.feign.version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <sa.plugin.name>feign</sa.plugin.name>
   </properties>
   <dependencies>
     <dependency>
       <groupId>io.github.openfeign.opentracing</groupId>
+      <artifactId>feign-hystrix-opentracing</artifactId>
+      <version>${opentracing.feign.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>io.github.openfeign.opentracing</groupId>
+          <artifactId>feign-opentracing</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.github.openfeign</groupId>
+          <artifactId>feign-hystrix</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.netflix.hystrix</groupId>
+      <artifactId>hystrix-core</artifactId>
+      <version>1.5.18</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.github.openfeign</groupId>
+      <artifactId>feign-hystrix</artifactId>
+      <version>10.2.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.openfeign.opentracing</groupId>
       <artifactId>feign-opentracing</artifactId>
-      <version>0.3.0</version>
+      <version>${opentracing.feign.version}</version>
+      <scope>test</scope>
       <exclusions>
         <exclusion>
           <groupId>io.github.openfeign</groupId>
           <artifactId>feign-core</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>io.github.openfeign</groupId>
-      <artifactId>feign-core</artifactId>
-      <version>${feign.version}</version>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>io.github.openfeign</groupId>
-      <artifactId>feign-okhttp</artifactId>
-      <version>${feign.version}</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
