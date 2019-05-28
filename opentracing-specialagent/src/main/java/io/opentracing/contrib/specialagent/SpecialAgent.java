@@ -211,7 +211,7 @@ public class SpecialAgent {
 
     // Add plugin JARs from META-INF/opentracing-specialagent/
     final Set<URL> pluginJarUrls = SpecialAgentUtil.findJarResources("META-INF/opentracing-specialagent/", instruPlugins, tracerPlugins);
-    if (pluginJarUrls.size() == 0 && logger.isLoggable(Level.FINER))
+    if (logger.isLoggable(Level.FINER))
       logger.finer("Must be running from a test, because no JARs were found under META-INF/opentracing-specialagent/");
 
     try {
@@ -338,9 +338,6 @@ public class SpecialAgent {
         nameToVersion.put(name, version);
 
         final URL[] dependencies = SpecialAgentUtil.filterRuleURLs(allPluginsClassLoader.getURLs(), dependenciesTgf, false, "compile");
-        if (logger.isLoggable(Level.FINEST))
-          logger.finest("  URLs from " + DEPENDENCIES_TGF + ": " + SpecialAgentUtil.toIndentedString(dependencies));
-
         if (dependencies == null)
           throw new UnsupportedOperationException("Unsupported " + DEPENDENCIES_TGF + " encountered: " + url + "\nPlease file an issue on https://github.com/opentracing-contrib/java-specialagent/");
 

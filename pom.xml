@@ -57,6 +57,7 @@
   </properties>
   <modules>
     <module>opentracing-specialagent</module>
+    <module>agentrule-maven-plugin</module>
   </modules>
   <profiles>
     <profile>
@@ -208,6 +209,7 @@
                   <noLog>true</noLog>
                   <streamLogs>true</streamLogs>
                   <showErrors>true</showErrors>
+                  <skipInvocation>${skipTests}</skipInvocation>
                   <properties>
                     <argLine>${argLine}</argLine>
                     <skipTests>${skipTests}</skipTests>
@@ -238,7 +240,6 @@
         </property>
       </activation>
       <modules>
-        <module>agentrule-maven-plugin</module>
         <module>opentracing-specialagent-api</module>
         <module>rules</module>
       </modules>
@@ -250,6 +251,9 @@
           <name>assemble</name>
         </property>
       </activation>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
       <build>
         <plugins>
           <plugin>
