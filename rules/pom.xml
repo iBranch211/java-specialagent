@@ -60,12 +60,14 @@
     <module>specialagent-feign</module>
     <module>specialagent-hystrix</module>
     <module>specialagent-zuul</module>
-    <module>specialagent-spring-scheduling</module>
   </modules>
   <profiles>
     <profile>
       <id>default</id>
       <activation>
+        <file>
+          <exists>src</exists>
+        </file>
         <property>
           <name>!assemble</name>
         </property>
