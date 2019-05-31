@@ -100,7 +100,7 @@ public class SpecialAgentAgent {
         try (final RuleClassLoader ruleClassLoader = new RuleClassLoader(new URL[] {new URL("file", null, classpath)}, null)) {
           final URL resource = ruleClassLoader.findResource(arg.replace('.', '/').concat(".class"));
           if (resource != null)
-            returned = AssembleUtil.readBytes(resource);
+            returned = SpecialAgentUtil.readBytes(resource);
         }
 
         if (AgentRule.logger.isLoggable(Level.FINEST))

@@ -370,7 +370,7 @@ class Link implements Serializable {
 
     @Override
     public String toString() {
-      return AssembleUtil.toIndentedString(links.keySet());
+      return SpecialAgentUtil.toIndentedString(links.keySet());
     }
   }
 
