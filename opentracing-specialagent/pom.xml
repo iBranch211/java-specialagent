@@ -294,7 +294,7 @@
         </dependency>
         <dependency>
           <groupId>io.opentracing.contrib.specialagent.rules</groupId>
-          <artifactId>specialagent-spring-jms</artifactId>
+          <artifactId>specialagent-spring-websocket</artifactId>
           <version>${project.version}</version>
           <scope>provided</scope>
         </dependency>
