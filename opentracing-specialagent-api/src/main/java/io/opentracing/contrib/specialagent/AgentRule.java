@@ -17,6 +17,8 @@ package io.opentracing.contrib.specialagent;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.bytebuddy.agent.builder.AgentBuilder;
 
@@ -57,7 +59,7 @@ public abstract class AgentRule {
     return pluginVerbose != null && Boolean.parseBoolean(pluginVerbose);
   }
 
-  public static final Logger logger = Logger.getLogger(AgentRule.class);
+  public static final Logger logger = Logger.getLogger(AgentRule.class.getName());
   public abstract Iterable<? extends AgentBuilder> buildAgent(AgentBuilder builder) throws Exception;
   // ElementMatcher<? super MethodDescription> onMethod();
   // DynamicAdvice advice();

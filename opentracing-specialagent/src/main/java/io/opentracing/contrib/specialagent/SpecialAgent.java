@@ -33,6 +33,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.jar.JarFile;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import com.sun.tools.attach.VirtualMachine;
 
@@ -48,7 +52,7 @@ import io.opentracing.util.GlobalTracer;
  */
 @SuppressWarnings("restriction")
 public class SpecialAgent {
-  private static final Logger logger = Logger.getLogger(SpecialAgent.class);
+  private static final Logger logger = Logger.getLogger(SpecialAgent.class.getName());
 
   static final String AGENT_RUNNER_ARG = "sa.agentrunner";
   static final String RULE_PATH_ARG = "sa.rulepath";
@@ -94,27 +98,36 @@ public class SpecialAgent {
   static {
     final String configProperty = System.getProperty("config");
     try (
-      final InputStream defaultConfig = SpecialAgent.class.getResourceAsStream("/default.properties");
-      final FileReader userConfig = configProperty == null ? null : new FileReader(new File(configProperty));
+      final InputStream configInputStream = SpecialAgent.class.getResourceAsStream("/default.properties");
+      final FileReader reader = configProperty == null ? null : new FileReader(new File(configProperty));
+      final InputStream loggingInputStream = SpecialAgent.class.getResourceAsStream("/logging.properties");
     ) {
       final Properties properties = new Properties();
 
       // Load default config properties
-      properties.load(defaultConfig);
+      properties.load(configInputStream);
 
       // Load user config properties
-      if (userConfig != null)
-        properties.load(userConfig);
+      if (reader != null)
+        properties.load(reader);
 
       // Set config properties as system properties
       for (final Map.Entry<Object,Object> entry : properties.entrySet())
         if (System.getProperty((String)entry.getKey()) == null)
           System.setProperty((String)entry.getKey(), (String)entry.getValue());
 
+      // Load default logging properties
+      LogManager.getLogManager().readConfiguration(loggingInputStream);
+
       // Load user logging properties
       final String loggingProperty = System.getProperty(LOGGING_PROPERTY);
-      if (loggingProperty != null)
-        Logger.setLevel(Level.parse(loggingProperty));
+      if (loggingProperty != null) {
+        final Level level = Level.parse(loggingProperty);
+        final Logger rootLogger = LogManager.getLogManager().getLogger("");
+        rootLogger.setLevel(level);
+        for (final Handler handler : rootLogger.getHandlers())
+          handler.setLevel(level);
+      }
     }
     catch (final IOException e) {
       throw new ExceptionInInitializerError(e);

@@ -20,6 +20,8 @@ import static org.junit.Assert.*;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -42,14 +44,12 @@ import com.amazonaws.services.dynamodbv2.model.KeyType;
 import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
 
 import io.opentracing.contrib.specialagent.AgentRunner;
-import io.opentracing.contrib.specialagent.Level;
-import io.opentracing.contrib.specialagent.Logger;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 
 @RunWith(AgentRunner.class)
 public class AwsTest {
-  private static final Logger logger = Logger.getLogger(AwsTest.class);
+  private static final Logger logger = Logger.getLogger(AwsTest.class.getName());
 
   @Before
   public void before(final MockTracer tracer) {

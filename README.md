@@ -328,6 +328,7 @@ The following plugins have [<ins>Instrumentation Rules</ins>](#45-instrumentatio
 1. [AWS SDK](https://github.com/opentracing-contrib/java-aws-sdk)
 1. [Cassandra Driver](https://github.com/opentracing-contrib/java-cassandra-driver)
 1. [JMS API (`javax.jms` v1 & v2)][java-jms]
+1. [JMS Spring](https://github.com/opentracing-contrib/java-jms/tree/master/opentracing-jms-spring)
 1. [Elasticsearch6 Client](https://github.com/opentracing-contrib/java-elasticsearch-client)
 1. [RxJava 2](https://github.com/opentracing-contrib/java-rxjava)
 1. [Kafka Client](https://github.com/opentracing-contrib/java-kafka-client)
@@ -343,7 +344,6 @@ The following plugins have [<ins>Instrumentation Rules</ins>](#45-instrumentatio
 1. [Spring Web](https://github.com/opentracing-contrib/java-spring-web)
 1. [Spring Web MVC](https://github.com/opentracing-contrib/java-spring-web)
 1. [Spring WebFlux](https://github.com/opentracing-contrib/java-spring-web)
-1. [Spring WebSocket STOMP](https://github.com/opentracing-contrib/java-spring-cloud/tree/master/instrument-starters/opentracing-spring-cloud-websocket-starter)
 1. [Redisson](https://github.com/opentracing-contrib/java-redis-client/tree/master/opentracing-redis-redisson)
 1. [Grizzly HTTP Server](https://github.com/opentracing-contrib/java-grizzly-http-server)
 1. [Grizzly AsyncHttpClient](https://github.com/opentracing-contrib/java-grizzly-ahc)
