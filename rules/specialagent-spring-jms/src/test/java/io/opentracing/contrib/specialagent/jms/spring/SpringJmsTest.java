@@ -12,23 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.opentracing.contrib.specialagent.jms.spring;
 
-import static org.awaitility.Awaitility.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
+import io.opentracing.contrib.specialagent.AgentRunner;
+import io.opentracing.mock.MockSpan;
+import io.opentracing.mock.MockTracer;
+import io.opentracing.util.GlobalTracer;
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.jms.ConnectionFactory;
-
 import org.apache.activemq.artemis.api.core.TransportConfiguration;
+import org.apache.activemq.artemis.core.config.Configuration;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.remoting.impl.invm.InVMAcceptorFactory;
 import org.apache.activemq.artemis.core.server.ActiveMQServer;
@@ -41,18 +44,12 @@ import org.junit.runner.RunWith;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
-
-import io.opentracing.contrib.specialagent.AgentRunner;
-import io.opentracing.mock.MockSpan;
-import io.opentracing.mock.MockTracer;
-import io.opentracing.util.GlobalTracer;
 
 @RunWith(AgentRunner.class)
 @AgentRunner.Config(isolateClassLoader = false)
@@ -61,13 +58,14 @@ public class SpringJmsTest {
   private ActiveMQServer server;
 
   @Before
+  @SuppressWarnings("resource")
   public void before(final MockTracer tracer) throws Exception {
     tracer.reset();
 
     final HashSet<TransportConfiguration> transports = new HashSet<>();
     transports.add(new TransportConfiguration(InVMAcceptorFactory.class.getName()));
 
-    final ConfigurationImpl configuration = new ConfigurationImpl();
+    final Configuration configuration = new ConfigurationImpl();
     configuration.setAcceptorConfigurations(transports);
     configuration.setSecurityEnabled(false);
 
@@ -85,7 +83,8 @@ public class SpringJmsTest {
 
   @Test
   public void test(final MockTracer tracer) {
-    final ApplicationContext context = new AnnotationConfigApplicationContext(RabbitConfiguration.class);
+    final ApplicationContext context = new AnnotationConfigApplicationContext(
+        RabbitConfiguration.class);
     final JmsTemplate jmsTemplate = context.getBean(JmsTemplate.class);
     jmsTemplate.convertAndSend("mailbox", "message");
 
@@ -105,12 +104,13 @@ public class SpringJmsTest {
     };
   }
 
+  @org.springframework.context.annotation.Configuration
   @EnableJms
-  @Configuration
   public static class RabbitConfiguration {
     @Bean
     public DefaultJmsListenerContainerFactory jmsListenerContainerFactory() {
-      final DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+      DefaultJmsListenerContainerFactory factory
+          = new DefaultJmsListenerContainerFactory();
       factory.setConnectionFactory(connectionFactory());
       return factory;
     }
@@ -136,5 +136,6 @@ public class SpringJmsTest {
       assertEquals("message", message);
       counter.incrementAndGet();
     }
+
   }
 }

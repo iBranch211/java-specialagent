@@ -15,21 +15,18 @@
 
 package io.opentracing.contrib.specialagent.jms.spring;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.jms.Message;
-
 import io.opentracing.References;
 import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
-import io.opentracing.Tracer;
 import io.opentracing.Tracer.SpanBuilder;
 import io.opentracing.contrib.jms.common.SpanContextContainer;
 import io.opentracing.contrib.jms.common.TracingMessageUtils;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
+import java.util.HashMap;
+import java.util.Map;
+import javax.jms.Message;
 
 public class SpringJmsAgentIntercept {
   private static class Context {
@@ -46,24 +43,23 @@ public class SpringJmsAgentIntercept {
       return;
     }
 
-    contextHolder.set(new Context());
+    final Context context = new Context();
+    contextHolder.set(context);
 
-    final Tracer tracer = GlobalTracer.get();
-    final SpanBuilder builder = tracer
-      .buildSpan("onMessage")
-      .withTag(Tags.COMPONENT, "spring-jms")
-      .withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_CONSUMER);
+    final SpanBuilder builder = GlobalTracer.get()
+        .buildSpan("onMessage")
+        .withTag(Tags.COMPONENT, "spring-jms")
+        .withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_CONSUMER);
 
-    final Message message = (Message)msg;
+    final Message message = (Message) msg;
 
     SpanContext spanContext = null;
     if (message instanceof SpanContextContainer) {
-      SpanContextContainer spanContextContainer = (SpanContextContainer)message;
+      SpanContextContainer spanContextContainer = (SpanContextContainer) message;
       spanContext = spanContextContainer.getSpanContext();
     }
-
     if (spanContext == null) {
-      spanContext = TracingMessageUtils.extract(message, tracer);
+      spanContext = TracingMessageUtils.extract(message, GlobalTracer.get());
     }
 
     if (spanContext != null) {
@@ -72,28 +68,26 @@ public class SpringJmsAgentIntercept {
 
     final Span span = builder.start();
     contextHolder.get().span = span;
-    contextHolder.get().scope = tracer.activateSpan(span);
+    contextHolder.get().scope = GlobalTracer.get().activateSpan(span);
   }
 
-  public static void onMessageExit(final Throwable thrown) {
+  public static void onMessageExit(Throwable thrown) {
     final Context context = contextHolder.get();
-    if (context == null)
-      return;
-
-    --context.counter;
-    if (context.counter != 0)
-      return;
-
-    if (thrown != null)
-      captureException(context.span, thrown);
-
-    context.scope.close();
-    context.span.finish();
-    contextHolder.remove();
+    if (context != null) {
+      --context.counter;
+      if (context.counter == 0) {
+        if (thrown != null) {
+          captureException(context.span, thrown);
+        }
+        context.scope.close();
+        context.span.finish();
+        contextHolder.remove();
+      }
+    }
   }
 
   private static void captureException(final Span span, final Throwable t) {
-    final Map<String,Object> exceptionLogs = new HashMap<>();
+    final Map<String, Object> exceptionLogs = new HashMap<>();
     exceptionLogs.put("event", Tags.ERROR.getKey());
     exceptionLogs.put("error.object", t);
     span.log(exceptionLogs);

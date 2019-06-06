@@ -17,7 +17,6 @@ package io.opentracing.contrib.specialagent.kafka.spring;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import io.opentracing.References;
@@ -82,7 +81,7 @@ public class SpringKafkaAgentIntercept {
   }
 
   private static void captureException(final Span span, final Throwable t) {
-    final Map<String,Object> exceptionLogs = new HashMap<>();
+    final Map<String, Object> exceptionLogs = new HashMap<>();
     exceptionLogs.put("event", Tags.ERROR.getKey());
     exceptionLogs.put("error.object", t);
     span.log(exceptionLogs);
