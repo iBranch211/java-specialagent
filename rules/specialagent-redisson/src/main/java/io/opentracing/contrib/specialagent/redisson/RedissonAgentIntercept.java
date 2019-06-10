@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.redisson;
 
-import io.opentracing.contrib.redis.common.TracingConfiguration;
 import org.redisson.api.RedissonClient;
 
 import io.opentracing.contrib.redis.redisson.TracingRedissonClient;
@@ -24,6 +23,6 @@ import io.opentracing.util.GlobalTracer;
 public class RedissonAgentIntercept {
   public static Object exit(final Object returned) {
     final RedissonClient redissonClient = (RedissonClient)returned;
-    return new TracingRedissonClient(redissonClient, new TracingConfiguration.Builder(GlobalTracer.get()).build());
+    return new TracingRedissonClient(redissonClient, GlobalTracer.get(), false);
   }
 }
