@@ -42,28 +42,34 @@ class MethodFingerprint extends NamedFingerprint<MethodFingerprint> {
   MethodFingerprint(final String name, final String returnType, final String[] parameterTypes, final String[] exceptionTypes) {
     super(name);
     this.returnType = returnType;
-    this.parameterTypes = AssembleUtil.sort(parameterTypes);
-    this.exceptionTypes = AssembleUtil.sort(exceptionTypes);
+    this.parameterTypes = parameterTypes;
+    this.exceptionTypes = exceptionTypes;
   }
 
   /**
+   * Returns the name of the return type.
+   *
    * @return The name of the return type.
    */
-  String getReturnType() {
+  public String getReturnType() {
     return this.returnType;
   }
 
   /**
+   * Returns the names of the parameter types.
+   *
    * @return The names of the parameter types.
    */
-  String[] getParameterTypes() {
+  public String[] getParameterTypes() {
     return this.parameterTypes;
   }
 
   /**
+   * Returns the names of the exception types.
+   *
    * @return The names of the exception types.
    */
-  String[] getExceptionTypes() {
+  public String[] getExceptionTypes() {
     return this.exceptionTypes;
   }
 
@@ -73,7 +79,7 @@ class MethodFingerprint extends NamedFingerprint<MethodFingerprint> {
     if (comparison != 0)
       return comparison;
 
-    comparison = AssembleUtil.compare(parameterTypes, o.parameterTypes);
+    comparison = SpecialAgentUtil.compare(parameterTypes, o.parameterTypes);
     if (comparison != 0)
       return comparison;
 
@@ -110,11 +116,11 @@ class MethodFingerprint extends NamedFingerprint<MethodFingerprint> {
     builder.append(returnType == null ? "void" : returnType).append(' ');
     builder.append(getName()).append("(");
     if (parameterTypes != null)
-      builder.append(AssembleUtil.toString(parameterTypes, ", "));
+      builder.append(SpecialAgentUtil.toString(parameterTypes, ", "));
 
     builder.append(")");
     if (exceptionTypes != null)
-      builder.append(" throws ").append(AssembleUtil.toString(exceptionTypes, ", "));
+      builder.append(" throws ").append(SpecialAgentUtil.toString(exceptionTypes, ", "));
 
     builder.append(";");
     return builder.toString();
