@@ -15,8 +15,6 @@
 
 package io.opentracing.contrib.specialagent;
 
-import java.util.Objects;
-
 /**
  * Abstract class representing a {@link Fingerprint} with a name.
  *
@@ -34,7 +32,7 @@ abstract class NamedFingerprint<T extends NamedFingerprint<T>> extends Fingerpri
    * @param name The name associated to this fingerprint.
    */
   NamedFingerprint(final String name) {
-    this.name = Objects.requireNonNull(name);
+    this.name = name;
   }
 
   /**
