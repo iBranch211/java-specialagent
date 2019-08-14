@@ -15,14 +15,11 @@
 
 package io.opentracing.contrib.specialagent.aws2;
 
-import static org.awaitility.Awaitility.await;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.*;
 
 import java.net.URI;
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -62,7 +59,6 @@ public class Aws2Test {
     catch (final Exception ignore) {
     }
 
-    await().atMost(15, TimeUnit.SECONDS).until(reportedSpansSize(tracer), equalTo(1));
     final List<MockSpan> spans = tracer.finishedSpans();
     assertEquals(1, spans.size());
     assertEquals("CreateTableRequest", spans.get(0).operationName());
@@ -81,7 +77,6 @@ public class Aws2Test {
     catch (final Exception ignore) {
     }
 
-    await().atMost(15, TimeUnit.SECONDS).until(reportedSpansSize(tracer), equalTo(1));
     final List<MockSpan> spans = tracer.finishedSpans();
     assertEquals(1, spans.size());
     assertEquals("CreateTableRequest", spans.get(0).operationName());
@@ -131,14 +126,5 @@ public class Aws2Test {
       .provisionedThroughput(ProvisionedThroughput.builder().readCapacityUnits(10L).writeCapacityUnits(5L).build()).build();
 
     return dbClient.createTable(createTableRequest);
-  }
-
-  private static Callable<Integer> reportedSpansSize(final MockTracer tracer) {
-    return new Callable<Integer>() {
-      @Override
-      public Integer call() {
-        return tracer.finishedSpans().size();
-      }
-    };
   }
 }
