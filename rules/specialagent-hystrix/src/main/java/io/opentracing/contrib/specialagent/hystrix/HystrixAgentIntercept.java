@@ -13,13 +13,19 @@
  * limitations under the License.
  */
 
-package io.opentracing.contrib.specialagent;
+package io.opentracing.contrib.specialagent.hystrix;
 
-import java.net.URL;
-import java.net.URLClassLoader;
+import feign.opentracing.hystrix.TracingConcurrencyStrategy;
+import io.opentracing.util.GlobalTracer;
 
-class TracerClassLoader extends URLClassLoader {
-  TracerClassLoader(final ClassLoader parent, final URL ... urls) {
-    super(urls, parent);
+public class HystrixAgentIntercept {
+  private static volatile boolean registered;
+
+  public static void exit() {
+    if (registered)
+      return;
+
+    registered = true;
+    TracingConcurrencyStrategy.register(GlobalTracer.get());
   }
 }

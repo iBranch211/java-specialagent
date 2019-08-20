@@ -306,6 +306,12 @@
         </dependency>
         <dependency>
           <groupId>io.opentracing.contrib.specialagent.rules</groupId>
+          <artifactId>specialagent-hystrix</artifactId>
+          <version>${project.version}</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>io.opentracing.contrib.specialagent.rules</groupId>
           <artifactId>specialagent-zuul</artifactId>
           <version>${project.version}</version>
           <scope>provided</scope>
@@ -443,11 +449,6 @@
     <dependency>
       <groupId>io.opentracing</groupId>
       <artifactId>opentracing-noop</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>io.opentracing.contrib</groupId>
-      <artifactId>opentracing-tracerresolver</artifactId>
       <optional>true</optional>
     </dependency>
     <dependency>
