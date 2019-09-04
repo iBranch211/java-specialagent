@@ -39,12 +39,11 @@ public class SpringWebAgentIntercept {
 
   public static void enter(final Object thiz) {
     try {
-      Class.forName("org.springframework.web.client.AsyncRestTemplate");
-      // Spring 3.x doesn't have it
-      return;
+      Class.forName("org.springframework.beans.factory.access.BeanFactoryLocator");
     }
     catch (final ClassNotFoundException ignore) {
-      // OK
+      // Spring 5.x doesn't have it
+      return;
     }
 
     final ClientHttpRequest request = (ClientHttpRequest)thiz;
