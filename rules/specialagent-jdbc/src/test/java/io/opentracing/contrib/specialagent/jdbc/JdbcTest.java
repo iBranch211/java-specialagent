@@ -17,7 +17,6 @@ package io.opentracing.contrib.specialagent.jdbc;
 
 import static org.junit.Assert.*;
 
-import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
@@ -36,7 +35,6 @@ import io.opentracing.mock.MockTracer;
 public class JdbcTest {
   @Test
   public void test(final MockTracer tracer) throws Exception {
-    DriverManager.setLogWriter(new PrintWriter(System.err));
     Driver.load();
     try (
       final Scope ignored = tracer.buildSpan("jdbc-test").startActive(true);
