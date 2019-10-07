@@ -66,7 +66,6 @@ public class TracePostZuulFilter extends ZuulFilter {
         ((Scope)scopeObject).close();
 
       span.finish();
-      context.remove(TracePreZuulFilter.CONTEXT_SPAN_KEY);
     }
 
     return null;
