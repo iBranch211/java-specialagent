@@ -23,53 +23,50 @@
     <artifactId>rules</artifactId>
     <version>1.4.2-SNAPSHOT</version>
   </parent>
-  <artifactId>grizzly-http-server</artifactId>
-  <name>SpecialAgent Rule for Grizzly Http Server</name>
-  <url>https://github.com/opentracing-contrib/java-specialagent/tree/master/rules/grizzly-http-server</url>
+  <artifactId>cassandra-driver-3</artifactId>
+  <name>SpecialAgent Rule for Cassandra 3 Driver</name>
+  <url>https://github.com/opentracing-contrib/java-specialagent/tree/master/rules/cassandra-3-driver</url>
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <version.org.glassfish.grizzly>2.3.35</version.org.glassfish.grizzly>
-    <sa.plugin.name>grizzly:http-server</sa.plugin.name>
+    <sa.plugin.name>cassandra:driver:3</sa.plugin.name>
   </properties>
   <dependencies>
     <dependency>
-      <!-- https://github.com/opentracing-contrib/java-grizzly-http-server -->
+      <!-- https://github.com/opentracing-contrib/java-cassandra-driver -->
       <groupId>io.opentracing.contrib</groupId>
-      <artifactId>opentracing-grizzly-http-server</artifactId>
-      <version>0.1.2</version>
+      <artifactId>opentracing-cassandra-driver</artifactId>
+      <version>0.1.4</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.datastax.cassandra</groupId>
+          <artifactId>cassandra-driver-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
-      <groupId>io.opentracing.contrib</groupId>
-      <artifactId>opentracing-grizzly-http-server</artifactId>
-      <version>0.1.2</version>
-      <type>test-jar</type>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.grizzly</groupId>
-      <artifactId>grizzly-framework</artifactId>
-      <version>${version.org.glassfish.grizzly}</version>
-      <scope>provided</scope>
+      <groupId>com.datastax.cassandra</groupId>
+      <artifactId>cassandra-driver-core</artifactId>
+      <version>3.0.0</version>
       <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.grizzly</groupId>
-      <artifactId>grizzly-http</artifactId>
-      <version>${version.org.glassfish.grizzly}</version>
       <scope>provided</scope>
-      <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>org.glassfish.grizzly</groupId>
-      <artifactId>grizzly-http-server</artifactId>
-      <version>${version.org.glassfish.grizzly}</version>
+      <groupId>org.cassandraunit</groupId>
+      <artifactId>cassandra-unit</artifactId>
+      <version>2.2.2.1</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-all</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.glassfish.grizzly</groupId>
-      <artifactId>grizzly-http-client</artifactId>
-      <version>1.15</version>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>16.0.1</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

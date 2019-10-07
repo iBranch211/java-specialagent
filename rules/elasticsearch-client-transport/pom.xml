@@ -23,53 +23,45 @@
     <artifactId>rules</artifactId>
     <version>1.4.2-SNAPSHOT</version>
   </parent>
-  <artifactId>grizzly-http-server</artifactId>
-  <name>SpecialAgent Rule for Grizzly Http Server</name>
-  <url>https://github.com/opentracing-contrib/java-specialagent/tree/master/rules/grizzly-http-server</url>
+  <artifactId>elasticsearch-client-transport</artifactId>
+  <name>SpecialAgent Rule for Elasticsearch Transport Client</name>
+  <url>https://github.com/opentracing-contrib/java-specialagent/tree/master/rules/elasticsearch-7-transport-client</url>
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <version.org.glassfish.grizzly>2.3.35</version.org.glassfish.grizzly>
-    <sa.plugin.name>grizzly:http-server</sa.plugin.name>
+    <version.apache.logging>2.11.2</version.apache.logging>
+    <sa.plugin.name>elasticsearch:client-transport</sa.plugin.name>
   </properties>
   <dependencies>
     <dependency>
-      <!-- https://github.com/opentracing-contrib/java-grizzly-http-server -->
+      <!-- https://github.com/opentracing-contrib/java-elasticsearch-client -->
       <groupId>io.opentracing.contrib</groupId>
-      <artifactId>opentracing-grizzly-http-server</artifactId>
+      <artifactId>opentracing-elasticsearch-client-common</artifactId>
       <version>0.1.2</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.elasticsearch.client</groupId>
+          <artifactId>transport</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
-      <groupId>io.opentracing.contrib</groupId>
-      <artifactId>opentracing-grizzly-http-server</artifactId>
-      <version>0.1.2</version>
-      <type>test-jar</type>
+      <groupId>org.elasticsearch.client</groupId>
+      <artifactId>transport</artifactId>
+      <version>6.4.0</version>
+      <optional>true</optional>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>${version.apache.logging}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.glassfish.grizzly</groupId>
-      <artifactId>grizzly-framework</artifactId>
-      <version>${version.org.glassfish.grizzly}</version>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.grizzly</groupId>
-      <artifactId>grizzly-http</artifactId>
-      <version>${version.org.glassfish.grizzly}</version>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.grizzly</groupId>
-      <artifactId>grizzly-http-server</artifactId>
-      <version>${version.org.glassfish.grizzly}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.grizzly</groupId>
-      <artifactId>grizzly-http-client</artifactId>
-      <version>1.15</version>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>${version.apache.logging}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
