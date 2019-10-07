@@ -14,7 +14,7 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <version.opentracing-lettuce>0.1.12</version.opentracing-lettuce>
+    <version.opentracing-lettuce>0.1.13</version.opentracing-lettuce>
     <version.apache-logging>2.11.2</version.apache-logging>
   </properties>
   <build>
@@ -34,7 +34,7 @@
     <dependency>
       <!-- https://github.com/opentracing-contrib/java-redis-client/tree/master/opentracing-redis-lettuce -->
       <groupId>io.opentracing.contrib</groupId>
-      <artifactId>opentracing-redis-lettuce5.0</artifactId>
+      <artifactId>opentracing-redis-lettuce-5.0</artifactId>
       <version>${version.opentracing-lettuce}</version>
       <exclusions>
         <exclusion>

@@ -102,7 +102,7 @@
         </dependency>
         <dependency>
           <groupId>io.opentracing.contrib.specialagent.rules</groupId>
-          <artifactId>servlet</artifactId>
+          <artifactId>web-servlet-filter</artifactId>
           <version>${project.version}</version>
           <scope>provided</scope>
         </dependency>
@@ -126,13 +126,13 @@
         </dependency>
         <dependency>
           <groupId>io.opentracing.contrib.specialagent.rules</groupId>
-          <artifactId>cassandra-driver-3</artifactId>
+          <artifactId>cassandra-3-driver</artifactId>
           <version>${project.version}</version>
           <scope>provided</scope>
         </dependency>
         <dependency>
           <groupId>io.opentracing.contrib.specialagent.rules</groupId>
-          <artifactId>cassandra-driver-4</artifactId>
+          <artifactId>cassandra-4-driver</artifactId>
           <version>${project.version}</version>
           <scope>provided</scope>
         </dependency>
@@ -150,13 +150,13 @@
         </dependency>
         <dependency>
           <groupId>io.opentracing.contrib.specialagent.rules</groupId>
-          <artifactId>elasticsearch-client-rest</artifactId>
+          <artifactId>elasticsearch-rest-client</artifactId>
           <version>${project.version}</version>
           <scope>provided</scope>
         </dependency>
         <dependency>
           <groupId>io.opentracing.contrib.specialagent.rules</groupId>
-          <artifactId>elasticsearch-client-transport</artifactId>
+          <artifactId>elasticsearch-transport-client</artifactId>
           <version>${project.version}</version>
           <scope>provided</scope>
         </dependency>
@@ -222,7 +222,13 @@
         </dependency>
         <dependency>
           <groupId>io.opentracing.contrib.specialagent.rules</groupId>
-          <artifactId>lettuce</artifactId>
+          <artifactId>lettuce-5.1</artifactId>
+          <version>${project.version}</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>io.opentracing.contrib.specialagent.rules</groupId>
+          <artifactId>lettuce-5.2</artifactId>
           <version>${project.version}</version>
           <scope>provided</scope>
         </dependency>
@@ -234,7 +240,7 @@
         </dependency>
         <dependency>
           <groupId>io.opentracing.contrib.specialagent.rules</groupId>
-          <artifactId>spring-web-3</artifactId>
+          <artifactId>spring-3-web</artifactId>
           <version>${project.version}</version>
           <scope>provided</scope>
         </dependency>
@@ -246,7 +252,7 @@
         </dependency>
         <dependency>
           <groupId>io.opentracing.contrib.specialagent.rules</groupId>
-          <artifactId>spring-webmvc-3</artifactId>
+          <artifactId>spring-3-webmvc</artifactId>
           <version>${project.version}</version>
           <scope>provided</scope>
         </dependency>
