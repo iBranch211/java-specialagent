@@ -73,27 +73,4 @@ public class SpecialAgentUtilTest {
     assertEquals(name, SpecialAgentUtil.getName("." + s + name));
     assertEquals(name, SpecialAgentUtil.getName("foo" + s + "bar" + s + name));
   }
-
-  @Test
-  public void testConvertToRegex() {
-    try {
-      SpecialAgentUtil.convertToRegex(null);
-      fail("Expected NullPointerException");
-    }
-    catch (final NullPointerException e) {
-    }
-
-    try {
-      SpecialAgentUtil.convertToRegex("");
-      fail("Expected IllegalArgumentException");
-    }
-    catch (final IllegalArgumentException e) {
-    }
-
-    assertEquals(".*", SpecialAgentUtil.convertToRegex("*"));
-    assertEquals("spring:.*", SpecialAgentUtil.convertToRegex("spring:*"));
-    assertEquals("spring:[^:]*:.*", SpecialAgentUtil.convertToRegex("spring:*:*"));
-
-    assertEquals("lettuce:5\\..", SpecialAgentUtil.convertToRegex("lettuce:5.?"));
-  }
 }

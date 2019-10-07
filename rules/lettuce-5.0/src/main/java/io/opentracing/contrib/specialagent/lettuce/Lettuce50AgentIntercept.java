@@ -27,6 +27,7 @@ import io.opentracing.contrib.redis.lettuce50.TracingRedisPubSubListener;
 import io.opentracing.util.GlobalTracer;
 
 public class Lettuce50AgentIntercept {
+
   @SuppressWarnings("unchecked")
   public static Object getAsyncCommands(final Object returned) {
     if (returned instanceof TracingRedisAsyncCommands)
