@@ -23,19 +23,36 @@
     <groupId>io.opentracing.contrib.specialagent.rules</groupId>
     <version>1.4.2-SNAPSHOT</version>
   </parent>
-  <artifactId>spring-web-5</artifactId>
-  <name>SpecialAgent Rule for Spring Web 5</name>
+  <artifactId>spring-web-4</artifactId>
+  <name>SpecialAgent Rule for Spring Web 4.1.x, 4.2.x, 4.3.x</name>
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <spring.version>5.0.0.RELEASE</spring.version>
-    <sa.plugin.name>spring:web:5</sa.plugin.name>
+    <version.spring>4.1.0.RELEASE</version.spring>
+    <sa.plugin.name>spring:web:4</sa.plugin.name>
   </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>io.opentracing.contrib.specialagent</groupId>
+        <artifactId>agentrule-maven-plugin</artifactId>
+        <configuration>
+          <presents>
+            <present>org.springframework.web.client.AsyncRestTemplate</present>
+            <present>org.springframework.util.concurrent.SuccessCallback</present>
+          </presents>
+          <absents>
+            <absent>org.springframework.http.ContentDisposition</absent>
+          </absents>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
   <dependencies>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-web</artifactId>
-      <version>${spring.version}</version>
+      <version>${version.spring}</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
