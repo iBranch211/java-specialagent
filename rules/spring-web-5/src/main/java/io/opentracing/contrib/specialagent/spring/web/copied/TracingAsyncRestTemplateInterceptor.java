@@ -104,7 +104,7 @@ public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpReque
           span.finish();
         }
       });
-      return new TracingListenableFuture(future, span);
+      return future;
     }
   }
 }
