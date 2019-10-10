@@ -32,19 +32,6 @@
     <version.jetty>9.3.15.v20161220</version.jetty>
     <sa.plugin.name>spring:webmvc:5</sa.plugin.name>
   </properties>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>io.opentracing.contrib.specialagent</groupId>
-        <artifactId>agentrule-maven-plugin</artifactId>
-        <configuration>
-          <presents>
-            <present>org.springframework.web.servlet.resource.HttpResource</present>
-          </presents>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
   <dependencies>
     <dependency>
       <groupId>org.springframework</groupId>
