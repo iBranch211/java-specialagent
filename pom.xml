@@ -244,7 +244,6 @@
         <module>assemble-maven-plugin</module>
         <module>opentracing-specialagent</module>
         <module>agentrule-maven-plugin</module>
-        <module>itest-maven-plugin</module>
       </modules>
       <dependencies>
         <!-- Tracer Plugins -->

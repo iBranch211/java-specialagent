@@ -17,6 +17,8 @@ package okhttp;
 
 import java.io.IOException;
 
+import org.junit.Test;
+
 import io.opentracing.contrib.specialagent.TestUtil;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -24,27 +26,26 @@ import okhttp3.Response;
 
 public class OkHttpITest {
   public static void main(final String[] args) throws IOException {
-    testBuilder();
-    testClient();
+    final OkHttpITest test = new OkHttpITest();
+    test.testBuilder();
+    test.testClient();
   }
 
-  private static void testBuilder() throws IOException {
+  @Test
+  public void testBuilder() throws IOException {
     test(new OkHttpClient.Builder().build());
     TestUtil.checkSpan("okhttp", 2);
   }
 
-  private static void testClient() throws IOException {
+  @Test
+  public void testClient() throws IOException {
     test(new OkHttpClient());
     TestUtil.checkSpan("okhttp", 2);
   }
 
   private static void test(final OkHttpClient client) throws IOException {
     final Request request = new Request.Builder().url("https://www.google.com").build();
-    try (final Response response = client.newCall(request).execute()) {
-      System.out.println(response.code());
-    }
-
-    client.dispatcher().executorService().shutdown();
-    client.connectionPool().evictAll();
+    final Response response = client.newCall(request).execute();
+    System.out.println(response.code());
   }
 }

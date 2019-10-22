@@ -61,10 +61,12 @@ public class MongoReactiveITest {
 
         @Override
         public void onNext(final Success success) {
+
         }
 
         @Override
         public void onError(final Throwable t) {
+
         }
 
         @Override

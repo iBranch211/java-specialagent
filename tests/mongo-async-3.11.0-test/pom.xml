@@ -28,10 +28,10 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>io.opentracing.contrib.specialagent</groupId>
-        <artifactId>itest-maven-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
-          <mainClass>mongo.MongoAsyncITest</mainClass>
+          <dependenciesToScan>io.opentracing.contrib.specialagent.tests:mongo-async-3.9.0-test</dependenciesToScan>
         </configuration>
       </plugin>
     </plugins>
