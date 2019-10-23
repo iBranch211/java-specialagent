@@ -23,57 +23,40 @@
     <artifactId>tests</artifactId>
     <version>1.4.3-SNAPSHOT</version>
   </parent>
-  <artifactId>servlet-tomcat-9.0.27-test</artifactId>
-  <name>SpecialAgent Test for Tomcat 9.0.27</name>
+  <artifactId>aws-2.7.15-test</artifactId>
+  <name>SpecialAgent Test for AWS SDK 2.7.15</name>
   <properties>
-    <tomcat.version>9.0.27</tomcat.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
   <build>
     <plugins>
       <plugin>
         <groupId>io.opentracing.contrib.specialagent</groupId>
         <artifactId>itest-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>default</id>
-            <configuration>
-              <mainClass>tomcat.TomcatSyncITest</mainClass>
-            </configuration>
-          </execution>
-          <execution>
-            <id>async</id>
-            <goals>
-              <goal>itest</goal>
-            </goals>
-            <phase>test</phase>
-            <configuration>
-              <mainClass>tomcat.TomcatAsyncITest</mainClass>
-            </configuration>
-          </execution>
-        </executions>
+        <configuration>
+          <mainClass>aws.Aws2ITest</mainClass>
+        </configuration>
       </plugin>
     </plugins>
   </build>
   <dependencies>
     <dependency>
-      <groupId>org.apache.tomcat.embed</groupId>
-      <artifactId>tomcat-embed-core</artifactId>
-      <version>${tomcat.version}</version>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>aws-sdk-java</artifactId>
+      <version>2.7.15</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.tomcat.embed</groupId>
-      <artifactId>tomcat-embed-jasper</artifactId>
-      <version>${tomcat.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.tomcat</groupId>
-      <artifactId>tomcat-juli</artifactId>
-      <version>${tomcat.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.tomcat</groupId>
-      <artifactId>tomcat-util</artifactId>
-      <version>${tomcat.version}</version>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>DynamoDBLocal</artifactId>
+      <version>1.11.475</version>
     </dependency>
   </dependencies>
+  <repositories>
+    <repository>
+      <id>dynamodblocal</id>
+      <name>AWS DynamoDB Local Release Repository</name>
+      <url>https://s3-us-west-2.amazonaws.com/dynamodb-local/release</url>
+    </repository>
+  </repositories>
 </project>
