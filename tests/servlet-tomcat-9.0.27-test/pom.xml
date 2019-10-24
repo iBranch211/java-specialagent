@@ -23,10 +23,10 @@
     <artifactId>tests</artifactId>
     <version>1.4.3-SNAPSHOT</version>
   </parent>
-  <artifactId>servlet-tomcat-7.0.65-test</artifactId>
-  <name>SpecialAgent Test for Tomcat 7.0.65</name>
+  <artifactId>servlet-tomcat-9.0.27-test</artifactId>
+  <name>SpecialAgent Test for Tomcat 9.0.27</name>
   <properties>
-    <tomcat.version>7.0.65</tomcat.version>
+    <tomcat.version>9.0.27</tomcat.version>
   </properties>
   <build>
     <plugins>
@@ -64,6 +64,12 @@
       <groupId>org.apache.tomcat</groupId>
       <artifactId>tomcat-juli</artifactId>
       <version>${tomcat.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.opentracing.contrib.specialagent.tests</groupId>
+      <artifactId>servlet-tomcat-7.0.65-test</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
     </dependency>
   </dependencies>
 </project>
