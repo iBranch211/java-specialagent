@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent;
 
-import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.reflect.Field;
 import java.util.concurrent.Callable;
 
@@ -29,18 +28,6 @@ import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public final class TestUtil {
-  private static class TerminalExceptionHandler implements UncaughtExceptionHandler {
-    @Override
-    public void uncaughtException(final Thread t, final Throwable e) {
-      e.printStackTrace(System.err);
-      System.exit(1);
-    }
-  };
-
-  public static void initTerminalExceptionHandler() {
-    Thread.currentThread().setUncaughtExceptionHandler(new TerminalExceptionHandler());
-  }
-
   private static Tracer getTracer() {
     try {
       final Field field = GlobalTracer.get().getClass().getDeclaredField("tracer");
