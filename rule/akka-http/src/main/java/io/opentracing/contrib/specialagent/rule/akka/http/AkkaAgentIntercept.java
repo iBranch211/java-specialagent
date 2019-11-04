@@ -17,10 +17,12 @@ package io.opentracing.contrib.specialagent.rule.akka.http;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
+import akka.japi.Function;
 import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
@@ -30,7 +32,8 @@ import io.opentracing.util.GlobalTracer;
 
 public class AkkaAgentIntercept {
   private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
-  static final String COMPONENT_NAME = "akka-http-client";
+  static final String COMPONENT_NAME_CLIENT = "akka-http-client";
+  static final String COMPONENT_NAME_SERVER = "akka-http-server";
 
   private static class Context {
     private Span span;
@@ -47,7 +50,7 @@ public class AkkaAgentIntercept {
     final HttpRequest request = (HttpRequest)arg0;
     final Tracer tracer = GlobalTracer.get();
     final Span span = tracer.buildSpan(request.method().value())
-      .withTag(Tags.COMPONENT, COMPONENT_NAME)
+      .withTag(Tags.COMPONENT, COMPONENT_NAME_CLIENT)
       .withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_CLIENT)
       .withTag(Tags.HTTP_METHOD, request.method().value())
       .withTag(Tags.HTTP_URL, request.getUri().toString())
@@ -85,8 +88,7 @@ public class AkkaAgentIntercept {
       return returned;
     }
 
-    final CompletionStage<HttpResponse> stage = (CompletionStage<HttpResponse>)returned;
-    return stage.thenApply(httpResponse -> {
+    return ((CompletionStage<HttpResponse>)returned).thenApply(httpResponse -> {
       span.setTag(Tags.HTTP_STATUS, httpResponse.status().intValue());
       span.finish();
       return httpResponse;
@@ -97,7 +99,17 @@ public class AkkaAgentIntercept {
     });
   }
 
-  private static void onError(final Throwable t, final Span span) {
+  @SuppressWarnings("unchecked")
+  public static Object bindAndHandleSync(final Object handler) {
+    return new AkkaHttpSyncHandler((Function<HttpRequest,HttpResponse>)handler);
+  }
+
+  @SuppressWarnings("unchecked")
+  public static Object bindAndHandleAsync(final Object handler) {
+    return new AkkaHttpAsyncHandler((Function<HttpRequest,CompletableFuture<HttpResponse>>)handler);
+  }
+
+  static void onError(final Throwable t, final Span span) {
     Tags.ERROR.set(span, Boolean.TRUE);
     if (t != null)
       span.log(errorLogs(t));

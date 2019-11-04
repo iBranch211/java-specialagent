@@ -15,17 +15,20 @@
 
 package io.opentracing.contrib.specialagent.rule.akka.http;
 
+import static io.opentracing.contrib.specialagent.rule.akka.http.AkkaHttpClientTest.*;
 import static org.awaitility.Awaitility.*;
 import static org.hamcrest.core.IsEqual.*;
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -34,11 +37,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import akka.actor.ActorSystem;
+import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
-import akka.http.javadsl.model.HttpRequest;
+import akka.http.javadsl.ServerBinding;
 import akka.http.javadsl.model.HttpResponse;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
+import akka.util.ByteString;
 import io.opentracing.contrib.specialagent.AgentRunner;
 import io.opentracing.contrib.specialagent.AgentRunner.Config;
 import io.opentracing.mock.MockSpan;
@@ -49,12 +54,16 @@ import scala.concurrent.duration.Duration;
 
 @RunWith(AgentRunner.class)
 @Config(isolateClassLoader = false)
-public class AkkaHttpClientTest {
+public class AkkaHttpServerTest {
   private static ActorSystem system;
+  private static Materializer materializer;
+  private static Http http;
 
   @BeforeClass
-  public static void beforeClass() {
+  public static void beforeClass() throws IllegalAccessException, InvocationTargetException {
     system = ActorSystem.create();
+    materializer = ActorMaterializer.create(system);
+    http = getHttp(system);
   }
 
   @AfterClass
@@ -69,37 +78,30 @@ public class AkkaHttpClientTest {
   }
 
   @Test
-  public void test(final MockTracer tracer) throws IllegalAccessException, InvocationTargetException {
-    final Materializer materializer = ActorMaterializer.create(system);
+  public void testSync(final MockTracer tracer) throws ExecutionException, InterruptedException, IOException {
+    final CompletionStage<ServerBinding> binding = http.bindAndHandleSync(request -> HttpResponse.create().withEntity(ByteString.fromString("OK")), ConnectHttp.toHost("localhost", 8081), materializer);
+    final ServerBinding serverBinding = binding.toCompletableFuture().get();
+    test(tracer, serverBinding);
+  }
 
-    final Http http = getHttp(system);
+  @Test
+  public void testAsync(final MockTracer tracer) throws ExecutionException, InterruptedException, IOException {
+    final CompletionStage<ServerBinding> binding = http.bindAndHandleAsync(request -> CompletableFuture.supplyAsync(() -> HttpResponse.create().withEntity(ByteString.fromString("OK"))), ConnectHttp.toHost("localhost", 8082), materializer);
+    final ServerBinding serverBinding = binding.toCompletableFuture().get();
+    test(tracer, serverBinding);
+  }
 
-    final CompletionStage<HttpResponse> stage = http.singleRequest(HttpRequest.GET("http://localhost:12345"));
-    try {
-      stage.whenComplete(new BiConsumer<HttpResponse,Throwable>() {
-        @Override
-        public void accept(final HttpResponse httpResponse, final Throwable throwable) {
-          System.out.println(httpResponse.status());
-        }
-      }).toCompletableFuture().get().entity().getDataBytes().runForeach(param -> {}, materializer);
-    }
-    catch (final Exception ignore) {
-    }
+  private static void test(final MockTracer tracer, final ServerBinding serverBinding) throws ExecutionException, InterruptedException, IOException {
+    final URL url = new URL("http://localhost:" + serverBinding.localAddress().getPort());
+    final HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+    connection.setRequestMethod("GET");
+    assertEquals(200, connection.getResponseCode());
+    serverBinding.unbind().toCompletableFuture().get();
 
     await().atMost(15, TimeUnit.SECONDS).until(() -> tracer.finishedSpans().size(), equalTo(1));
 
     final List<MockSpan> spans = tracer.finishedSpans();
     assertEquals(1, spans.size());
-    assertEquals(AkkaAgentIntercept.COMPONENT_NAME_CLIENT, spans.get(0).tags().get(Tags.COMPONENT.getKey()));
-  }
-
-  static Http getHttp(final ActorSystem system) throws IllegalAccessException, InvocationTargetException {
-    // Use Reflection to call Http.get(system) because Scala Http class decompiles to java
-    // class with 2 similar methods 'Http.get(system)' with difference in return type only
-    for (final Method method : Http.class.getMethods())
-      if (Modifier.isStatic(method.getModifiers()) && "get".equals(method.getName()) && Http.class.equals(method.getReturnType()))
-        return (Http)method.invoke(null, system);
-
-    return null;
+    assertEquals(AkkaAgentIntercept.COMPONENT_NAME_SERVER, spans.get(0).tags().get(Tags.COMPONENT.getKey()));
   }
 }
