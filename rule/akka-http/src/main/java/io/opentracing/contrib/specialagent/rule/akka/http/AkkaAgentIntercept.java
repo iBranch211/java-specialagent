@@ -15,10 +15,8 @@
 
 package io.opentracing.contrib.specialagent.rule.akka.http;
 
-import akka.japi.Function;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import akka.http.javadsl.model.HttpRequest;
@@ -32,8 +30,7 @@ import io.opentracing.util.GlobalTracer;
 
 public class AkkaAgentIntercept {
   private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
-  static final String COMPONENT_NAME_CLIENT = "akka-http-client";
-  static final String COMPONENT_NAME_SERVER = "akka-http-server";
+  static final String COMPONENT_NAME = "akka-http-client";
 
   private static class Context {
     private Span span;
@@ -50,7 +47,7 @@ public class AkkaAgentIntercept {
     final HttpRequest request = (HttpRequest)arg0;
     final Tracer tracer = GlobalTracer.get();
     final Span span = tracer.buildSpan(request.method().value())
-      .withTag(Tags.COMPONENT, COMPONENT_NAME_CLIENT)
+      .withTag(Tags.COMPONENT, COMPONENT_NAME)
       .withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_CLIENT)
       .withTag(Tags.HTTP_METHOD, request.method().value())
       .withTag(Tags.HTTP_URL, request.getUri().toString())
@@ -100,19 +97,7 @@ public class AkkaAgentIntercept {
     });
   }
 
-  @SuppressWarnings("unchecked")
-  public static Object bindAndHandleSync(Object arg0) {
-    Function<HttpRequest, HttpResponse> handler = (Function<HttpRequest, HttpResponse>) arg0;
-    return new AkkaHttpSyncHandler(handler);
-  }
-
-  @SuppressWarnings("unchecked")
-  public static Object bindAndHandleAsync(Object arg0) {
-    Function<HttpRequest, CompletableFuture<HttpResponse>> handler = (Function<HttpRequest, CompletableFuture<HttpResponse>>) arg0;
-    return new AkkaHttpAsyncHandler(handler);
-  }
-
-  static void onError(final Throwable t, final Span span) {
+  private static void onError(final Throwable t, final Span span) {
     Tags.ERROR.set(span, Boolean.TRUE);
     if (t != null)
       span.log(errorLogs(t));
