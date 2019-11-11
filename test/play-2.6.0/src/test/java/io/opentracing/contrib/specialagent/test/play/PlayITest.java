@@ -15,12 +15,11 @@
 
 package io.opentracing.contrib.specialagent.test.play;
 
-import static play.mvc.Results.*;
-
-import java.net.HttpURLConnection;
-import java.net.URL;
+import static play.mvc.Results.ok;
 
 import io.opentracing.contrib.specialagent.TestUtil;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import play.core.PlayVersion;
 import play.routing.RoutingDsl;
 import play.server.Server;
@@ -29,12 +28,12 @@ public class PlayITest {
   public static void main(final String[] args) throws Exception {
     TestUtil.initTerminalExceptionHandler();
     final Server server = Server.forRouter((components) -> RoutingDsl.fromComponents(components)
-      .GET("/hello/:to")
-      .routeTo((request) -> {
-        TestUtil.checkActiveSpan();
-        return ok("Hello");
-      })
-      .build());
+        .GET("/hello/:to")
+        .routeTo((request) -> {
+          TestUtil.checkActiveSpan();
+          return ok("Hello");
+        })
+        .build());
 
     final URL url = new URL("http://localhost:" + server.httpPort() + "/hello/world");
     final HttpURLConnection connection = (HttpURLConnection)url.openConnection();
@@ -46,10 +45,9 @@ public class PlayITest {
       throw new AssertionError("ERROR: response: " + responseCode);
 
     final String playVersion = PlayVersion.current();
-    if (playVersion.startsWith("2.6")) {
+    if(playVersion.startsWith("2.6")) {
       TestUtil.checkSpan("play", 2); // 1 Play span + 1 Akka Actor span
-    }
-    else {
+    } else {
       TestUtil.checkSpan("play", 1);
     }
   }
