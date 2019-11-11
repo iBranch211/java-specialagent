@@ -89,7 +89,6 @@
         <module>akka-actor</module>
         <module>akka-http</module>
         <module>play</module>
-        <module>play-ws</module>
       </modules>
       <build>
         <resources>
