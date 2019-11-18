@@ -23,13 +23,13 @@
     <artifactId>test</artifactId>
     <version>1.5.2-SNAPSHOT</version>
   </parent>
-  <artifactId>hazelcast-3.12</artifactId>
-  <name>SpecialAgent Test for Hazelcast 3.12</name>
+  <artifactId>apache-httpclient-4.4</artifactId>
+  <name>SpecialAgent Test for Apache HttpClient 4.4</name>
   <dependencies>
     <dependency>
-      <groupId>com.hazelcast</groupId>
-      <artifactId>hazelcast</artifactId>
-      <version>3.12</version>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.4</version>
     </dependency>
   </dependencies>
 </project>

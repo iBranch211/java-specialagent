@@ -15,19 +15,18 @@
 
 package io.opentracing.contrib.specialagent.test.jaxrs;
 
-import io.opentracing.contrib.specialagent.TestUtil;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import io.opentracing.contrib.specialagent.TestUtil;
+
 public class JaxRsClientITest {
   public static void main(final String[] args) throws Exception {
     TestUtil.initTerminalExceptionHandler();
     final Client client = ClientBuilder.newClient();
-    final Response response = client.target("http://www.google.com")
-        .request(MediaType.TEXT_PLAIN)
-        .get();
+    final Response response = client.target("http://www.google.com").request(MediaType.TEXT_PLAIN).get();
     final int statusCode = response.getStatus();
 
     if (200 != statusCode)
