@@ -23,17 +23,25 @@
     <artifactId>test</artifactId>
     <version>1.5.2-SNAPSHOT</version>
   </parent>
-  <artifactId>apache-httpclient-4.5.10</artifactId>
-  <name>SpecialAgent Test for Apache HttpClient 4.5.10</name>
+  <artifactId>jax-rs-2.1</artifactId>
+  <name>SpecialAgent Test for JAX-RS 2.1 Client</name>
+  <properties>
+    <version.jersey>2.29.1</version.jersey>
+  </properties>
   <dependencies>
     <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>4.5.10</version>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-client</artifactId>
+      <version>${version.jersey}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.inject</groupId>
+      <artifactId>jersey-hk2</artifactId>
+      <version>${version.jersey}</version>
     </dependency>
     <dependency>
       <groupId>io.opentracing.contrib.specialagent.test</groupId>
-      <artifactId>apache-httpclient-4.4</artifactId>
+      <artifactId>jax-rs-2.0</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
     </dependency>
