@@ -41,9 +41,9 @@ public class ElasticsearchRestClientAgentRule extends AgentRule {
 
   public static class Rest {
     @Advice.OnMethodEnter
-    public static void enter(final @Advice.Origin String origin, final @Advice.This Object thiz) {
+    public static void enter(final @Advice.Origin String origin, final @Advice.This Object thiz, final @Advice.FieldValue(value = "httpClientConfigCallback") Object httpClientConfigCallback) {
       if (isEnabled(origin))
-        ElasticsearchRestClientAgentIntercept.rest(thiz);
+        ElasticsearchRestClientAgentIntercept.rest(thiz, httpClientConfigCallback);
     }
   }
 }

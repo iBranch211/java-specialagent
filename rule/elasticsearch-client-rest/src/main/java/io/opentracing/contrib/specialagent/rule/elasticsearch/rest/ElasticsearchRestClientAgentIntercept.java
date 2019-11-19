@@ -16,11 +16,12 @@
 package io.opentracing.contrib.specialagent.rule.elasticsearch.rest;
 
 import org.elasticsearch.client.RestClientBuilder;
+import org.elasticsearch.client.RestClientBuilder.HttpClientConfigCallback;
 
 import io.opentracing.contrib.elasticsearch.common.TracingHttpClientConfigCallback;
 
 public class ElasticsearchRestClientAgentIntercept {
-  public static void rest(final Object thiz) {
-    ((RestClientBuilder)thiz).setHttpClientConfigCallback(new TracingHttpClientConfigCallback());
+  public static void rest(final Object thiz, final Object httpClientConfigCallback) {
+    ((RestClientBuilder)thiz).setHttpClientConfigCallback(new TracingHttpClientConfigCallback((HttpClientConfigCallback)httpClientConfigCallback));
   }
 }
