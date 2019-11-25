@@ -23,17 +23,19 @@
     <artifactId>test</artifactId>
     <version>1.5.2-SNAPSHOT</version>
   </parent>
-  <artifactId>reactor-3.2.3</artifactId>
-  <name>SpecialAgent Test for Reactor 3.2.3</name>
-  <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-  </properties>
+  <artifactId>jedis-3.1.0</artifactId>
+  <name>SpecialAgent Test for Jedis 3.1.0</name>
   <dependencies>
     <dependency>
-      <groupId>io.projectreactor</groupId>
-      <artifactId>reactor-core</artifactId>
-      <version>3.2.3.RELEASE</version>
+      <groupId>redis.clients</groupId>
+      <artifactId>jedis</artifactId>
+      <version>3.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>io.opentracing.contrib.specialagent.test</groupId>
+      <artifactId>jedis-2.7.0</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
     </dependency>
   </dependencies>
 </project>
