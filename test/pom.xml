@@ -352,6 +352,18 @@
       </modules>
     </profile>
     <profile>
+      <id>rabbitmq-client</id>
+      <activation>
+        <property>
+          <name>all</name>
+        </property>
+      </activation>
+      <modules>
+        <module>rabbitmq-client-5.0.0</module>
+        <module>rabbitmq-client-5.7.3</module>
+      </modules>
+    </profile>
+    <profile>
       <id>jedis</id>
       <activation>
         <property>
@@ -361,6 +373,18 @@
       <modules>
         <module>jedis-2.7.0</module>
         <module>jedis-3.1.0</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>reactor</id>
+      <activation>
+        <property>
+          <name>all</name>
+        </property>
+      </activation>
+      <modules>
+        <module>reactor-3.2.3</module>
+        <module>reactor-3.3.0</module>
       </modules>
     </profile>
     <profile>
