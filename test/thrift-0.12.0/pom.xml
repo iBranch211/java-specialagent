@@ -23,17 +23,17 @@
     <artifactId>test</artifactId>
     <version>1.5.2-SNAPSHOT</version>
   </parent>
-  <artifactId>redisson-3.11.5</artifactId>
-  <name>SpecialAgent Test for Redisson 3.11.5</name>
+  <artifactId>thrift-0.12.0</artifactId>
+  <name>SpecialAgent Test for Apache Thrift 0.12.0</name>
   <dependencies>
     <dependency>
-      <groupId>org.redisson</groupId>
-      <artifactId>redisson</artifactId>
-      <version>3.11.5</version>
+      <groupId>org.apache.thrift</groupId>
+      <artifactId>libthrift</artifactId>
+      <version>0.12.0</version>
     </dependency>
     <dependency>
       <groupId>io.opentracing.contrib.specialagent.test</groupId>
-      <artifactId>redisson-3.11.0</artifactId>
+      <artifactId>thrift-0.10.0</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
     </dependency>
