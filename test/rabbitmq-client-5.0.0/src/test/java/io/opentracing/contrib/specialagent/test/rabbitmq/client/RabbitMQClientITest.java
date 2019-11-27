@@ -19,7 +19,6 @@ import java.util.concurrent.CountDownLatch;
 
 import com.rabbitmq.client.CancelCallback;
 import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.Delivery;
@@ -40,10 +39,7 @@ public class RabbitMQClientITest {
     factory.setPassword("guest");
     factory.setHost("localhost");
     factory.setPort(broker.getBrokerPort());
-    try (
-      final Connection connection = factory.newConnection();
-      final Channel channel = connection.createChannel();
-    ) {
+    try (final Channel channel = factory.newConnection().createChannel()) {
       channel.queueDeclare(QUEUE_NAME, false, false, false, null);
       channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
       System.out.println(" [x] Sent '" + message + "'");
