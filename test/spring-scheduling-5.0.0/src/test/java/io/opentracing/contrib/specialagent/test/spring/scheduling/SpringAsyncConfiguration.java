@@ -12,18 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package io.opentracing.contrib.specialagent.test.spring.webmvc;
+package io.opentracing.contrib.specialagent.test.spring.scheduling;
 
 import io.opentracing.contrib.specialagent.TestUtil;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 
-@RestController
-public class HelloController {
-  @RequestMapping("/")
-  public String index() {
+@EnableScheduling
+@EnableAsync
+@ComponentScan
+public class SpringAsyncConfiguration {
+  @Scheduled(fixedDelay = 600_000)
+  public void scheduledTask() {
     TestUtil.checkActiveSpan();
-    return "index";
   }
+
 }

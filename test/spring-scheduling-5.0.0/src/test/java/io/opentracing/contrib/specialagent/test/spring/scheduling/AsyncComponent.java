@@ -12,22 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.opentracing.contrib.specialagent.test.spring.webmvc;
+package io.opentracing.contrib.specialagent.test.spring.scheduling;
 
 import io.opentracing.contrib.specialagent.TestUtil;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import java.util.concurrent.Future;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.stereotype.Component;
 
-@Controller
-public class HelloController {
+@Component
+public class AsyncComponent {
 
-  @RequestMapping(value = "/", method = RequestMethod.GET)
-  @ResponseBody
-  public String index() {
+  @Async
+  public Future<String> async() {
     TestUtil.checkActiveSpan();
-    return "index";
+    return new AsyncResult<>("async");
   }
 
 }
