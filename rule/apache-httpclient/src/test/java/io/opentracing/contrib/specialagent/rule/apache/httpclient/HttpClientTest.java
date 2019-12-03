@@ -17,11 +17,7 @@ package io.opentracing.contrib.specialagent.rule.apache.httpclient;
 
 import static org.junit.Assert.*;
 
-import java.io.IOException;
-
 import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -32,6 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import io.opentracing.contrib.specialagent.AgentRunner;
+import io.opentracing.contrib.specialagent.rule.apache.httpclient.HttpClientAgentIntercept;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 import io.opentracing.tag.Tags;
@@ -61,12 +58,7 @@ public class HttpClientTest {
     }
 
     try {
-      httpClient.execute(new HttpGet(url), new ResponseHandler<Object>() {
-        @Override
-        public Object handleResponse(final HttpResponse response) throws ClientProtocolException, IOException {
-          return "done";
-        }
-      });
+      httpClient.execute(new HttpGet(url), (ResponseHandler<Object>)response -> "done");
     }
     catch (final Exception ignore) {
     }

@@ -29,9 +29,7 @@ import io.opentracing.util.GlobalTracer;
 import play.api.mvc.Action;
 import play.api.mvc.Request;
 import play.api.mvc.Result;
-import scala.Function1;
 import scala.concurrent.Future;
-import scala.util.Try;
 
 public class PlayAgentIntercept {
   private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
@@ -90,19 +88,16 @@ public class PlayAgentIntercept {
       return;
     }
 
-    ((Future<Result>)returned).onComplete(new Function1<Try<Result>,Object>() {
-      @Override
-      public Object apply(final Try<Result> response) {
-        if (response.isFailure()) {
-          onError(response.failed().get(), span);
-        }
-        else {
-          span.setTag(Tags.HTTP_STATUS, response.get().header().status());
-        }
-
-        span.finish();
-        return null;
+    ((Future<Result>)returned).onComplete(res -> {
+      if (res.isFailure()) {
+        onError(res.failed().get(), span);
       }
+      else {
+        span.setTag(Tags.HTTP_STATUS, res.get().header().status());
+      }
+
+      span.finish();
+      return null;
     }, ((Action<?>)thiz).executionContext());
   }
 

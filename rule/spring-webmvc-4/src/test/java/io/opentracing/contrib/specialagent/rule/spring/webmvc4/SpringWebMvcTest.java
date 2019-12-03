@@ -32,7 +32,6 @@ import org.springframework.web.client.RestTemplate;
 
 import io.opentracing.contrib.specialagent.AgentRunner;
 import io.opentracing.contrib.specialagent.AgentRunner.Config;
-import io.opentracing.contrib.specialagent.TestUtil;
 import io.opentracing.mock.MockTracer;
 
 @RunWith(AgentRunner.class)
@@ -69,7 +68,7 @@ public class SpringWebMvcTest {
     final ResponseEntity<String> responseEntity = new RestTemplate().getForEntity(url, String.class);
     assertEquals("sync", responseEntity.getBody());
 
-    await().atMost(15, TimeUnit.SECONDS).until(TestUtil.reportedSpansSize(tracer), equalTo(1));
+    await().atMost(15, TimeUnit.SECONDS).until(() -> tracer.finishedSpans().size(), equalTo(1));
 
     assertEquals(1, tracer.finishedSpans().size());
     assertFalse(tracer.finishedSpans().get(0).logEntries().isEmpty());

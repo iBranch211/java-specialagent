@@ -83,9 +83,8 @@ public class TracingChannelInterceptor implements  ExecutorChannelInterceptor {
   }
 
   private Message<?> preSendClientSpan(final Message<?> message) {
-    final String destination = (String)message.getHeaders().get(SIMP_DESTINATION);
     final Span span = tracer
-      .buildSpan(destination != null ? destination : UNKNOWN_DESTINATION)
+      .buildSpan((String)message.getHeaders().getOrDefault(SIMP_DESTINATION, UNKNOWN_DESTINATION))
       .withTag(Tags.SPAN_KIND.getKey(), spanKind)
       .withTag(Tags.COMPONENT.getKey(), WEBSOCKET).start();
     final MessageBuilder<?> messageBuilder = MessageBuilder.fromMessage(message).setHeader(OPENTRACING_SPAN, span);
@@ -95,9 +94,8 @@ public class TracingChannelInterceptor implements  ExecutorChannelInterceptor {
 
   @SuppressWarnings("unchecked")
   private Message<?> preSendServerSpan(Message<?> message) {
-    final String destination = (String)message.getHeaders().get(SIMP_DESTINATION);
     final SpanBuilder spanBuilder = tracer
-      .buildSpan(destination != null ? destination : UNKNOWN_DESTINATION)
+      .buildSpan((String)message.getHeaders().getOrDefault(SIMP_DESTINATION, UNKNOWN_DESTINATION))
       .withTag(Tags.SPAN_KIND.getKey(), spanKind)
       .withTag(Tags.COMPONENT.getKey(), WEBSOCKET);
 

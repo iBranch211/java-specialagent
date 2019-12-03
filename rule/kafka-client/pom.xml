@@ -26,6 +26,8 @@
   <artifactId>kafka-client</artifactId>
   <name>SpecialAgent Rule for Kafka Client</name>
   <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
     <version.kafka>1.1.0</version.kafka>
     <sa.plugin.name>kafka:client</sa.plugin.name>
   </properties>

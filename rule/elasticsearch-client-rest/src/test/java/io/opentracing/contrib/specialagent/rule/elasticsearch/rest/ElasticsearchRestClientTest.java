@@ -62,7 +62,6 @@ public class ElasticsearchRestClientTest {
   private static Node node;
 
   @BeforeClass
-  @SuppressWarnings({"rawtypes", "unchecked"})
   public static void startElasticsearch() throws Exception {
     final Settings settings = Settings.builder()
       .put("path.home", ES_WORKING_DIR)
@@ -75,7 +74,7 @@ public class ElasticsearchRestClientTest {
       .put("transport.tcp.port", HTTP_TRANSPORT_PORT)
       .put("network.host", "127.0.0.1")
       .build();
-    final Collection plugins = Collections.singletonList(Netty4Plugin.class);
+    final Collection<Class<? extends Plugin>> plugins = Collections.singletonList(Netty4Plugin.class);
     node = new PluginConfigurableNode(settings, plugins);
     node.start();
   }
@@ -141,7 +140,7 @@ public class ElasticsearchRestClientTest {
 
   @Test
   public void restClientWithCallback(final MockTracer tracer) throws IOException {
-    final AtomicInteger counter = new AtomicInteger();
+    AtomicInteger counter = new AtomicInteger();
     try (final RestClient client = RestClient.builder(new HttpHost("localhost", HTTP_PORT, "http"))
         .setHttpClientConfigCallback(new HttpClientConfigCallback() {
           @Override

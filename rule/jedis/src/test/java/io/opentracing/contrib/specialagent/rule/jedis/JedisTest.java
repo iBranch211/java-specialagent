@@ -18,7 +18,6 @@ package io.opentracing.contrib.specialagent.rule.jedis;
 import static org.junit.Assert.*;
 
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -44,13 +43,7 @@ public class JedisTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     redisServer = new RedisServer();
-    TestUtil.retry(new Callable<Void>() {
-      @Override
-      public Void call() throws Exception {
-        redisServer.start();
-        return null;
-      }
-    }, 10);
+    TestUtil.retry(() -> redisServer.start(), 10);
   }
 
   @AfterClass
