@@ -23,13 +23,22 @@
     <artifactId>test</artifactId>
     <version>1.5.3-SNAPSHOT</version>
   </parent>
-  <artifactId>spring-scheduling-5.0.0</artifactId>
-  <name>SpecialAgent Test for Spring Scheduling 5.0.0</name>
+  <artifactId>spring-webmvc-3.2.18</artifactId>
+  <name>SpecialAgent Test for Spring Web MVC 3.2.18</name>
+  <properties>
+    <spring.version>3.2.18.RELEASE</spring.version>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>org.springframework</groupId>
-      <artifactId>spring-context</artifactId>
-      <version>5.0.0.RELEASE</version>
+      <artifactId>spring-webmvc</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.opentracing.contrib.specialagent.test</groupId>
+      <artifactId>spring-webmvc-3.0.2</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
     </dependency>
   </dependencies>
 </project>
