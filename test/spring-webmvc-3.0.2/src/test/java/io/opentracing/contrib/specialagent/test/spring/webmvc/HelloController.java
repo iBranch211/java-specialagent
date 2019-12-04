@@ -13,21 +13,21 @@
  * limitations under the License.
  */
 
-package io.opentracing.contrib.specialagent.test.spring.scheduling;
+package io.opentracing.contrib.specialagent.test.spring.webmvc;
 
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import io.opentracing.contrib.specialagent.TestUtil;
 
-@EnableScheduling
-@EnableAsync
-@ComponentScan
-public class SpringAsyncConfiguration {
-  @Scheduled(fixedDelay = 600_000)
-  public void scheduledTask() {
+@Controller
+public class HelloController {
+  @RequestMapping(value = "/", method = RequestMethod.GET)
+  @ResponseBody
+  public String index() {
     TestUtil.checkActiveSpan();
+    return "index";
   }
 }
