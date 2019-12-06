@@ -1,4 +1,4 @@
-/* Copyright 2019 The OpenTracing Authors
+/* Copyright 2018-2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,12 @@
  * limitations under the License.
  */
 
-package io.opentracing.contrib.specialagent.test.rabbitmq.client;
+package io.opentracing.contrib.specialagent.test.spring.rabbitmq;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.qpid.server.SystemLauncher;
 import org.apache.qpid.server.SystemLauncherListener;
 import org.apache.qpid.server.model.Port;
