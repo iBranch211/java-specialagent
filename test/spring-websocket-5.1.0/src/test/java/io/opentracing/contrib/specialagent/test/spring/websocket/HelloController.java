@@ -12,20 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.opentracing.contrib.specialagent.test.spring.messaging;
+package io.opentracing.contrib.specialagent.test.spring.websocket;
 
 import io.opentracing.contrib.specialagent.TestUtil;
-import org.springframework.cloud.stream.annotation.EnableBinding;
-import org.springframework.cloud.stream.annotation.StreamListener;
-import org.springframework.cloud.stream.messaging.Sink;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.web.bind.annotation.RestController;
 
-@EnableBinding(Sink.class)
-public class Receiver {
+@RestController
+public class HelloController {
 
-  @StreamListener(Sink.INPUT)
-  public void receive(String message) {
+  @MessageMapping("/hello")
+  @SendTo("/topic/greetings")
+  public String greeting(String message) {
     TestUtil.checkActiveSpan();
-    System.out.println("Received " + message);
+    return message.toUpperCase();
   }
 
 }
