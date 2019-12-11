@@ -91,7 +91,6 @@
         <module>akka-http</module>
         <module>play</module>
         <module>play-ws</module>
-        <module>httpurlconnection</module>
       </modules>
       <build>
         <resources>
