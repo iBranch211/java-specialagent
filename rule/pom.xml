@@ -94,7 +94,6 @@
         <module>play-ws</module>
         <module>httpurlconnection</module>
         <module>couchbase-client</module>
-        <module>google-http-client</module>
       </modules>
       <build>
         <resources>
