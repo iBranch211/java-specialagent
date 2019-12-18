@@ -13,29 +13,29 @@
  * limitations under the License.
  */
 
-package io.opentracing.contrib.specialagent.rule.spring.websocket;
+package io.opentracing.contrib.specialagent.rule.googlehttpclient;
 
 import java.util.Iterator;
-import java.util.Map;
+import java.util.Map.Entry;
 
-import org.springframework.messaging.simp.stomp.StompHeaders;
+import com.google.api.client.http.HttpHeaders;
 
 import io.opentracing.propagation.TextMap;
 
-public class StompHeadersInjectAdapter implements TextMap {
-  private final StompHeaders headers;
+public class HttpHeadersInjectAdapter implements TextMap {
+  private final HttpHeaders httpHeaders;
 
-  public StompHeadersInjectAdapter(final StompHeaders headers) {
-    this.headers = headers;
+  public HttpHeadersInjectAdapter(HttpHeaders httpHeaders) {
+    this.httpHeaders = httpHeaders;
   }
 
   @Override
-  public Iterator<Map.Entry<String,String>> iterator() {
-    throw new UnsupportedOperationException(StompHeadersInjectAdapter.class.getName() + " can only be used with Tracer.inject()");
+  public Iterator<Entry<String,String>> iterator() {
+    throw new UnsupportedOperationException(HttpHeadersInjectAdapter.class.getName() + " can only be used with Tracer.inject()");
   }
 
   @Override
   public void put(final String key, final String value) {
-    headers.add(key, value);
+    httpHeaders.put(key, value);
   }
 }
