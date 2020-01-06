@@ -19,31 +19,28 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>io.opentracing.contrib.specialagent.test</groupId>
-    <artifactId>test</artifactId>
+    <groupId>io.opentracing.contrib.specialagent.rule</groupId>
+    <artifactId>rule</artifactId>
     <version>1.5.5-SNAPSHOT</version>
   </parent>
-  <artifactId>servlet-jetty-9.3.28</artifactId>
-  <name>SpecialAgent Test for Jetty 9.3.28</name>
+  <artifactId>netty</artifactId>
+  <name>SpecialAgent Rule for Netty</name>
   <properties>
-    <version.jetty>9.3.28.v20191105</version.jetty>
+    <sa.plugin.name>netty</sa.plugin.name>
   </properties>
   <dependencies>
     <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-server</artifactId>
-      <version>${version.jetty}</version>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-codec-http</artifactId>
+      <version>4.1.0.Final</version>
+      <optional>true</optional>
+      <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-webapp</artifactId>
-      <version>${version.jetty}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.opentracing.contrib.specialagent.test</groupId>
-      <artifactId>servlet-jetty-7.6.21</artifactId>
-      <version>${project.version}</version>
-      <type>test-jar</type>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-handler</artifactId>
+      <version>4.1.0.Final</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
