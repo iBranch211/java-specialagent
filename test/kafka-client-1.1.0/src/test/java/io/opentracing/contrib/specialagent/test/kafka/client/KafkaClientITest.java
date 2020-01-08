@@ -40,6 +40,7 @@ public class KafkaClientITest {
   private static final String TOPIC_NAME = "demo";
 
   public static void main(final String[] args) throws Exception {
+    TestUtil.initTerminalExceptionHandler();
     final EmbeddedKafkaRule embeddedKafkaRule = TestUtil.retry(new Callable<EmbeddedKafkaRule>() {
       @Override
       public EmbeddedKafkaRule call() {

@@ -19,6 +19,7 @@ import io.opentracing.contrib.specialagent.TestUtil;
 
 public class TomcatAsyncITest extends TomcatTest {
   public static void main(final String[] args) throws Exception {
+    TestUtil.initTerminalExceptionHandler();
     run(new AsyncServlet(), true);
   }
 }

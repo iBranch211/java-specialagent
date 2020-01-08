@@ -76,6 +76,7 @@ public class SpringWebSocketITest {
   }
 
   public static void main(final String[] args) throws Exception {
+    TestUtil.initTerminalExceptionHandler();
     final CountDownLatch latch = TestUtil.initExpectedSpanLatch(6);
     try (final ConfigurableApplicationContext context = SpringApplication.run(SpringWebSocketITest.class, args)) {
       TestUtil.checkSpan("websocket", 6, latch);

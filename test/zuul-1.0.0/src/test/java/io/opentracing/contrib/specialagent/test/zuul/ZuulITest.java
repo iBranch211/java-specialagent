@@ -15,6 +15,7 @@
 
 package io.opentracing.contrib.specialagent.test.zuul;
 
+import io.opentracing.contrib.specialagent.TestUtil;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -23,13 +24,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-import io.opentracing.contrib.specialagent.TestUtil;
-
 @SpringBootApplication
 @EnableZuulProxy
 public class ZuulITest {
   public static void main(final String[] args) {
+    TestUtil.initTerminalExceptionHandler();
     SpringApplication.run(ZuulITest.class, args).close();
+
     TestUtil.checkSpan("zuul", 4);
   }
 
@@ -37,8 +38,8 @@ public class ZuulITest {
   public CommandLineRunner commandLineRunner() {
     return new CommandLineRunner() {
       @Override
-      public void run(final String... args) {
-        final RestTemplate restTemplate = new RestTemplate();
+      public void run(String... args) {
+        RestTemplate restTemplate = new RestTemplate();
         final ResponseEntity<String> entity = restTemplate.getForEntity("http://localhost:8080", String.class);
         final int statusCode = entity.getStatusCode().value();
         if (200 != statusCode)
@@ -46,4 +47,5 @@ public class ZuulITest {
       }
     };
   }
+
 }

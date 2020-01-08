@@ -27,6 +27,7 @@ import play.server.Server;
 
 public class PlayITest {
   public static void main(final String[] args) throws Exception {
+    TestUtil.initTerminalExceptionHandler();
     final Server server = Server.forRouter((components) -> RoutingDsl.fromComponents(components)
       .GET("/hello/:to")
       .routeTo((request) -> {

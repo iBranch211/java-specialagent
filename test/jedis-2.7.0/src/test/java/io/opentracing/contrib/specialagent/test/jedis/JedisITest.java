@@ -21,6 +21,7 @@ import redis.embedded.RedisServer;
 
 public class JedisITest {
   public static void main(final String[] args) throws Exception {
+    TestUtil.initTerminalExceptionHandler();
     final RedisServer redisServer = new RedisServer();
     TestUtil.retry(new Runnable() {
       @Override

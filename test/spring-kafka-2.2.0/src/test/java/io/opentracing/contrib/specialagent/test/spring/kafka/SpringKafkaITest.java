@@ -45,6 +45,7 @@ public class SpringKafkaITest {
   public Producer producer;
 
   public static void main(final String[] args) throws Exception {
+    TestUtil.initTerminalExceptionHandler();
     final EmbeddedKafkaRule embeddedKafkaRule = TestUtil.retry(new Callable<EmbeddedKafkaRule>() {
       @Override
       public EmbeddedKafkaRule call() {

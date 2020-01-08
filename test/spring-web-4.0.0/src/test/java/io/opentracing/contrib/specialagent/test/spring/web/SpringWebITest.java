@@ -27,6 +27,8 @@ import io.opentracing.contrib.specialagent.TestUtil;
 
 public class SpringWebITest {
   public static void main(final String[] args) throws Exception {
+    TestUtil.initTerminalExceptionHandler();
+
     makeAsyncCall();
 
     final RestTemplate restTemplate = new RestTemplate();

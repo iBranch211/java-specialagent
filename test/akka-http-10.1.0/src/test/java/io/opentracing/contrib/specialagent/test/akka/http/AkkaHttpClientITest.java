@@ -31,6 +31,7 @@ import io.opentracing.contrib.specialagent.TestUtil;
 
 public class AkkaHttpClientITest {
   public static void main(final String[] args) throws Exception {
+    TestUtil.initTerminalExceptionHandler();
     final ActorSystem system = ActorSystem.create();
     final Materializer materializer = ActorMaterializer.create(system);
 

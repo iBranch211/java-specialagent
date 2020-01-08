@@ -37,6 +37,7 @@ import scala.concurrent.duration.Duration;
 
 public class AkkaHttpServerITest {
   public static void main(final String[] args) throws Exception {
+    TestUtil.initTerminalExceptionHandler();
     final ActorSystem system = ActorSystem.create();
     final Materializer materializer = ActorMaterializer.create(system);
     final Http http = getHttp(system);

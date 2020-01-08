@@ -31,6 +31,7 @@ import io.opentracing.contrib.specialagent.TestUtil;
 
 public class GrizzlyHttpServerITest {
   public static void main(final String[] args) throws IOException {
+    TestUtil.initTerminalExceptionHandler();
 
     final HttpServer server = new HttpServer();
     final NetworkListener listener = new NetworkListener("grizzly", DEFAULT_NETWORK_HOST, 18906);
