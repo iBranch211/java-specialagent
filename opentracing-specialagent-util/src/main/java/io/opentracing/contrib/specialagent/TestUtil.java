@@ -16,7 +16,6 @@
 package io.opentracing.contrib.specialagent;
 
 import java.lang.reflect.Field;
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -49,25 +48,13 @@ public final class TestUtil {
 
   public static void checkSpan(final String component, final int spanCount) {
     try {
-      checkSpan(component, spanCount, null, false);
-    }
-    catch (final InterruptedException e) {
-    }
-  }
-
-  public static void checkSpan(final String component, final int spanCount, final boolean sameTrace) {
-    try {
-      checkSpan(component, spanCount, null, sameTrace);
+      checkSpan(component, spanCount, null);
     }
     catch (final InterruptedException e) {
     }
   }
 
   public static void checkSpan(final String component, final int spanCount, final CountDownLatch latch) throws InterruptedException {
-    checkSpan(component, spanCount, latch, false);
-  }
-
-  public static void checkSpan(final String component, final int spanCount, final CountDownLatch latch, final boolean sameTrace) throws InterruptedException {
     final Tracer tracer = getGlobalTracer();
     if (tracer instanceof NoopTracer)
       throw new AssertionError("No tracer is registered");
@@ -80,30 +67,20 @@ public final class TestUtil {
       latch.await(15, TimeUnit.SECONDS);
 
     boolean found = false;
-    final List<MockSpan> spans = mockTracer.finishedSpans();
-    System.out.println("Spans: " + spans);
-    for (final MockSpan span : spans) {
+    System.out.println("Spans: " + mockTracer.finishedSpans());
+    for (final MockSpan span : mockTracer.finishedSpans()) {
       printSpan(span);
       if (component.equals(span.tags().get(Tags.COMPONENT.getKey()))) {
         found = true;
-        System.out.println("Found \"" + component + "\" span");
+        System.out.println("Found " + component + " span");
       }
     }
 
     if (!found)
-      throw new AssertionError("\"" + component + "\" span not found");
+      throw new AssertionError("ERROR: " + component + " span not found");
 
-    if (spans.size() != spanCount)
-      throw new AssertionError(spans.size() + " spans instead of " + spanCount);
-
-    if (sameTrace && spans.size() > 1) {
-      final long traceId = spans.get(0).context().traceId();
-      for (int i = 1; i < spans.size(); ++i) {
-        if (spans.get(i).context().traceId() != traceId) {
-          throw new AssertionError("Not the same trace");
-        }
-      }
-    }
+    if (mockTracer.finishedSpans().size() != spanCount)
+      throw new AssertionError("ERROR: " + mockTracer.finishedSpans().size() + " spans instead of " + spanCount);
 
     mockTracer.reset();
   }
@@ -121,7 +98,7 @@ public final class TestUtil {
     final Span span = GlobalTracer.get().activeSpan();
     System.out.println("Active span: " + span);
     if (span == null)
-      throw new AssertionError("No active span");
+      throw new AssertionError("Error: no active span");
   }
 
   public static Callable<Integer> reportedSpansSize(final MockTracer tracer) {
@@ -146,7 +123,7 @@ public final class TestUtil {
     }
   }
 
-  public static <T> T retry(final Callable<T> callable, final int maxRetries) throws Exception {
+  public static <T>T retry(final Callable<T> callable, final int maxRetries) throws Exception {
     for (int i = 1; i <= maxRetries; ++i) {
       try {
         return callable.call();
@@ -196,7 +173,7 @@ public final class TestUtil {
     if (!(tracer instanceof MockTracer))
       return;
 
-    ((MockTracer)tracer).reset();
+    ((MockTracer) tracer).reset();
   }
 
   private TestUtil() {

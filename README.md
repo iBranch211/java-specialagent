@@ -489,7 +489,7 @@ Direction for development of [<ins>Instrumentation Rules</ins>](#45-instrumentat
 | OpenTracing Plugin | SpecialAgent Rule | Min Version | Max Version |
 |:-|:-|:-:|:-:|
 | [Akka Actor](https://github.com/opentracing-contrib/java-akka) | [`akka:actor`][akka-actor] | 2.5.0 | 2.5.25 |
-| Akka Http | [`akka:http`][akka-http] | 10.1.0 | 10.1.10 |
+| Akka Http Client | [`akka:http`][akka-http] | 10.1.0 | **10.1.0** |
 | [Apache Camel](https://github.com/apache/camel/tree/master/components/camel-opentracing) | [`camel`][camel] | 2.24.0 | 2.24.2 |
 | [Apache HttpClient](https://github.com/opentracing-contrib/java-apache-httpclient) | [`apache:httpclient`][apache-httpclient] | 4.4 | 4.5.9 |
 | [Async Http Client](https://github.com/opentracing-contrib/java-asynchttpclient) | [`asynchttpclient`][asynchttpclient] | 2.7.0 | 2.10.4 |
@@ -522,7 +522,6 @@ Direction for development of [<ins>Instrumentation Rules</ins>](#45-instrumentat
 | | [`lettuce:5.2`][lettuce-5.2] | 5.2.0.RELEASE | **5.2.0.RELEASE** |
 | [MongoDB Driver](https://github.com/opentracing-contrib/java-mongo-driver) | [`mongo:driver`][mongo-driver] | 3.9.0 | 3.11.0 |
 | [Neo4j Driver](https://github.com/opentracing-contrib/java-neo4j-driver) | [`neo4j:driver`][neo4j-driver] | 4.0.0 | 4.0.0 |
-| Netty | [`netty`][netty] | 4.1.0 | 4.1.44 |
 | [OkHttp][java-okhttp] | [`okhttp`][okhttp] | 3.5.0 | 4.2.2 |
 | Play Framework | [`play`][play] | 2.6.0 | 2.7.3 |
 | Play WS | [`play:ws`][play-ws] | 2.0.0 | 2.0.7 |
@@ -638,7 +637,6 @@ This project is licensed under the Apache 2 License - see the [LICENSE.txt](LICE
 [neo4j-driver]: https://github.com/opentracing-contrib/java-specialagent/tree/master/rule/neo4j-driver
 [okhttp]: https://github.com/opentracing-contrib/java-specialagent/tree/master/rule/okhttp
 [play]: https://github.com/opentracing-contrib/java-specialagent/tree/master/rule/play
-[play-ws]: https://github.com/opentracing-contrib/java-specialagent/tree/master/rule/play-ws
 [rabbitmq-client]: https://github.com/opentracing-contrib/java-specialagent/tree/master/rule/rabbitmq-client
 [reactor]: https://github.com/opentracing-contrib/java-specialagent/tree/master/rule/reactor
 [redisson]: https://github.com/opentracing-contrib/java-specialagent/tree/master/rule/redisson
@@ -664,7 +662,6 @@ This project is licensed under the Apache 2 License - see the [LICENSE.txt](LICE
 [httpurlconnection]: https://github.com/opentracing-contrib/java-specialagent/tree/master/rule/httpurlconnection
 [couchbase-client]: https://github.com/opentracing-contrib/java-specialagent/tree/master/rule/couchbase-client
 [google-http-client]: https://github.com/opentracing-contrib/java-specialagent/tree/master/rule/google-http-client
-[netty]: https://github.com/opentracing-contrib/java-specialagent/tree/master/rule/netty
 
 [agentrunner-config]: https://github.com/opentracing-contrib/java-specialagent/tree/master/opentracing-specialagent-api#51-configuring-agentrunner
 [api]: https://github.com/opentracing-contrib/java-specialagent/tree/master/opentracing-specialagent-api
