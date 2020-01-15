@@ -84,8 +84,7 @@ public final class TestUtil {
     System.out.println("Spans: " + spans);
     for (final MockSpan span : spans) {
       printSpan(span);
-      final String spanComponent = (String) span.tags().get(Tags.COMPONENT.getKey());
-      if (spanComponent != null && spanComponent.matches(component)) {
+      if (component.equals(span.tags().get(Tags.COMPONENT.getKey()))) {
         found = true;
         System.out.println("Found \"" + component + "\" span");
       }
