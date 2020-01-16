@@ -28,9 +28,11 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarFile;
 
@@ -49,9 +51,8 @@ import io.opentracing.util.GlobalTracer;
 public class SpecialAgent extends SpecialAgentBase {
   private static final Logger logger = Logger.getLogger(SpecialAgent.class);
 
-  private static class ClassLoaderMap<T> extends ConcurrentHashMap<ClassLoader,T> {
+  private static class ClassLoaderMap<T> extends IdentityHashMap<ClassLoader,T> {
     private static final long serialVersionUID = 5515722666603482519L;
-    private static final ClassLoader NULL = new ClassLoader() {};
 
     /**
      * This method is modified to support value lookups where the key is a
@@ -64,17 +65,12 @@ public class SpecialAgent extends SpecialAgentBase {
     @Override
     @SuppressWarnings("unlikely-arg-type")
     public T get(final Object key) {
-      T value = super.get(key == null ? NULL : key);
+      T value = super.get(key);
       if (value != null || !(key instanceof URLClassLoader))
         return value;
 
       final URLClassLoader classLoader = (URLClassLoader)key;
-      return classLoader.getURLs().length > 0 || classLoader.getParent() != null ? null : super.get(NULL);
-    }
-
-    @Override
-    public T put(final ClassLoader key, final T value) {
-      return super.put(key == null ? NULL : key, value);
+      return classLoader.getURLs().length > 0 || classLoader.getParent() != null ? null : super.get(null);
     }
   }
 
@@ -190,7 +186,7 @@ public class SpecialAgent extends SpecialAgentBase {
       final String key = String.valueOf(property.getKey());
       final String value = properties.get(key);
       if (value != null && !value.equals(property.getValue()))
-        throw new IllegalStateException("System property " + key + " is specified twice with different values: \"" + value + "\" and \"" + property.getValue() + "\"");
+        throw new IllegalStateException("System property " + key + " is specified twice with different values");
 
       properties.put(key, property.getValue() == null ? null : String.valueOf(property.getValue()));
     }
@@ -365,7 +361,7 @@ public class SpecialAgent extends SpecialAgentBase {
   private static URL findTracer(final ClassLoader classLoader, final String name) {
     try {
       final Enumeration<URL> enumeration = classLoader.getResources(TRACER_FACTORY);
-      final HashSet<URL> urls = new HashSet<>();
+      final Set<URL> urls = new HashSet<>();
       while (enumeration.hasMoreElements()) {
         final URL url = enumeration.nextElement();
         if (urls.contains(url))
@@ -401,7 +397,7 @@ public class SpecialAgent extends SpecialAgentBase {
     int count = 0;
     try {
       final Enumeration<URL> enumeration = classLoader.getResources(DEPENDENCIES_TGF);
-      final HashSet<String> urls = new HashSet<>();
+      final Set<String> urls = new HashSet<>();
       while (enumeration.hasMoreElements()) {
         final URL url = enumeration.nextElement();
         if (urls.contains(url.toString()))
