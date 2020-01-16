@@ -15,13 +15,19 @@
 
 package io.opentracing.contrib.specialagent.rule.pulsar.client;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import io.opentracing.contrib.specialagent.AgentRunner;
+import io.opentracing.mock.MockSpan;
+import io.opentracing.mock.MockTracer;
+import io.opentracing.tag.Tags;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.apache.pulsar.broker.PulsarService;
 import org.apache.pulsar.broker.ServiceConfiguration;
 import org.apache.pulsar.broker.loadbalance.impl.SimpleLoadManagerImpl;
@@ -39,26 +45,15 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
-import io.opentracing.contrib.specialagent.AgentRunner;
-import io.opentracing.contrib.specialagent.Logger;
-import io.opentracing.mock.MockSpan;
-import io.opentracing.mock.MockTracer;
-import io.opentracing.tag.Tags;
-
 @RunWith(AgentRunner.class)
 @AgentRunner.Config(isolateClassLoader = false)
 public class PulsarClientTest {
-  private static final Logger logger = Logger.getLogger(PulsarClientTest.class);
   // Pulsar doesn't yet support the latest JDK versions. We are still on 1.8
   private static final boolean isJdkSupported = System.getProperty("java.version").startsWith("1.8.");
 
   private static final String CLUSTER_NAME = "test-cluster";
   private static final int ZOOKEEPER_PORT = 8880;
   private static final AtomicInteger port = new AtomicInteger(ZOOKEEPER_PORT);
-
   private static LocalBookkeeperEnsemble bkEnsemble;
   private static PulsarService pulsarService;
 
@@ -73,9 +68,9 @@ public class PulsarClientTest {
     int brokerWebServicePort = 8885;
     int brokerServicePort = 8886;
 
-    final ServiceConfiguration config = new ServiceConfiguration();
+    ServiceConfiguration config = new ServiceConfiguration();
     config.setClusterName(CLUSTER_NAME);
-    final Set<String> superUsers = Sets.newHashSet("superUser");
+    Set<String> superUsers = Sets.newHashSet("superUser");
     config.setSuperUserRoles(superUsers);
     config.setWebServicePort(brokerWebServicePort);
     config.setZookeeperServers("127.0.0.1" + ":" + ZOOKEEPER_PORT);
@@ -102,11 +97,12 @@ public class PulsarClientTest {
 
   @AfterClass
   public static void afterClass() throws Exception {
-    if (pulsarService != null)
+    if (pulsarService != null) {
       pulsarService.close();
-
-    if (bkEnsemble != null)
+    }
+    if (bkEnsemble != null) {
       bkEnsemble.stop();
+    }
   }
 
   @Before
@@ -124,38 +120,39 @@ public class PulsarClientTest {
     test(tracer, true);
   }
 
-  private static void test(final MockTracer tracer, final boolean async) throws Exception {
-    if (!isJdkSupported) {
-      logger.warning("jdk" + System.getProperty("java.version") + " is not supported by Pulsar");
+  private void test(final MockTracer tracer, boolean async) throws Exception {
+    if (!isJdkSupported)
       return;
-    }
 
-    try (
-      final PulsarClient client = PulsarClient.builder().serviceUrl(pulsarService.getBrokerServiceUrl()).build();
-      final Consumer<byte[]> consumer = client.newConsumer().topic("my-topic").subscriptionName("my-subscription").subscribe();
-      final Producer<byte[]> producer = client.newProducer().topic("my-topic").create();
-    ) {
-      if (async)
-        producer.sendAsync("My message".getBytes()).get(15, TimeUnit.SECONDS);
-      else
-        producer.send("My message".getBytes());
-
-      Message<byte[]> message;
-      if (async)
-        message = consumer.receiveAsync().get(15, TimeUnit.SECONDS);
-      else
-        message = consumer.receive();
-
-      System.out.println("Message received: " + new String(message.getData()));
-      consumer.acknowledge(message);
+    try (final PulsarClient client = PulsarClient.builder()
+        .serviceUrl(pulsarService.getBrokerServiceUrl()).build()) {
+      try (final Consumer<byte[]> consumer = client.newConsumer().topic("my-topic")
+          .subscriptionName("my-subscription").subscribe()) {
+        try (final Producer<byte[]> producer = client.newProducer().topic("my-topic").create()) {
+          if (async) {
+            producer.sendAsync("My message".getBytes()).get(15, TimeUnit.SECONDS);
+          } else {
+            producer.send("My message".getBytes());
+          }
+        }
+        Message<byte[]> message;
+        if (async) {
+          message = consumer.receiveAsync().get(15, TimeUnit.SECONDS);
+        } else {
+          message = consumer.receive();
+        }
+        System.out.printf("Message received: %s\n", new String(message.getData()));
+        consumer.acknowledge(message);
+      }
     }
 
     final List<MockSpan> spans = tracer.finishedSpans();
     assertEquals(2, spans.size());
     assertNull(tracer.activeSpan());
-    for (final MockSpan span : spans)
+    for (MockSpan span : spans) {
       assertEquals(PulsarClientAgentIntercept.COMPONENT_NAME, span.tags().get(Tags.COMPONENT.getKey()));
-
+    }
     assertEquals(spans.get(0).context().traceId(), spans.get(1).context().traceId());
   }
+
 }

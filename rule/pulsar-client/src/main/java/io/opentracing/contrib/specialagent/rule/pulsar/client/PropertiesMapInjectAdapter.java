@@ -15,13 +15,11 @@
 
 package io.opentracing.contrib.specialagent.rule.pulsar.client;
 
+import io.opentracing.propagation.TextMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
-
 import org.apache.pulsar.common.api.proto.PulsarApi.KeyValue;
 import org.apache.pulsar.common.api.proto.PulsarApi.MessageMetadata.Builder;
-
-import io.opentracing.propagation.TextMap;
 
 public class PropertiesMapInjectAdapter implements TextMap {
   private final Builder messageBuilder;
@@ -36,7 +34,7 @@ public class PropertiesMapInjectAdapter implements TextMap {
   }
 
   @Override
-  public void put(final String key, final String value) {
+  public void put(String key, String value) {
     messageBuilder.addProperties(KeyValue.newBuilder().setKey(key).setValue(value).build());
   }
 }
