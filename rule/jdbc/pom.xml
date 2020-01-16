@@ -25,12 +25,16 @@
   </parent>
   <artifactId>jdbc</artifactId>
   <name>SpecialAgent Rule for Java JDBC API</name>
+  <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
   <dependencies>
     <dependency>
       <!-- https://github.com/opentracing-contrib/java-jdbc -->
       <groupId>io.opentracing.contrib</groupId>
       <artifactId>opentracing-jdbc</artifactId>
-      <version>0.2.5</version>
+      <version>0.2.6</version>
     </dependency>
     <dependency>
       <groupId>com.h2database</groupId>
