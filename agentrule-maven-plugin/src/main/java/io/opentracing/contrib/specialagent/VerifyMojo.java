@@ -45,13 +45,6 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 @Mojo(name = "verify", defaultPhase = LifecyclePhase.PREPARE_PACKAGE, requiresDependencyResolution = ResolutionScope.TEST)
 @Execute(goal = "verify")
 public final class VerifyMojo extends AbstractMojo {
-  private static final boolean ignoreMissingTestManifest;
-
-  static {
-    final String prop = System.getProperty("ignoreMissingTestManifest");
-    ignoreMissingTestManifest = prop != null && !"false".equals(prop);
-  }
-
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
 
@@ -118,13 +111,8 @@ public final class VerifyMojo extends AbstractMojo {
         if (!hasDependenciesTgf)
           throw new MojoExecutionException(file.getName() + " does not have dependencies.tgf");
 
-        if (!hasTestManifest) {
-          final String message = file.getName() + " does not have AgentRunner tests";
-          if (ignoreMissingTestManifest)
-            getLog().warn(message);
-          else
-            throw new MojoExecutionException(message);
-        }
+        if (!hasTestManifest)
+          throw new MojoExecutionException(file.getName() + " does not have AgentRunner tests");
 
         if (!hasPluginName)
           throw new MojoExecutionException(file.getName() + " does not have Plugin Name file");
