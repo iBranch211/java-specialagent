@@ -36,7 +36,6 @@ import org.junit.Test;
 
 import io.opentracing.contrib.jms.common.TracingMessageConsumer;
 import io.opentracing.contrib.jms2.TracingMessageProducer;
-import io.opentracing.contrib.specialagent.DynamicProxy;
 import io.opentracing.contrib.specialagent.Logger;
 import io.opentracing.contrib.specialagent.TestUtil;
 import io.opentracing.mock.MockSpan;
@@ -50,15 +49,16 @@ public abstract class JmsTest {
   Session session;
   Connection connection;
 
+  @Test
   public void sendAndReceive(final MockTracer tracer) throws Exception {
     final Destination destination = session.createQueue("TEST.FOO");
 
     final MessageProducer producer = session.createProducer(destination);
     producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
-    assertTrue(DynamicProxy.isProxy(producer, TracingMessageProducer.class));
+    assertTrue(producer instanceof TracingMessageProducer);
 
     final MessageConsumer consumer = session.createConsumer(destination);
-    assertTrue(DynamicProxy.isProxy(consumer, TracingMessageConsumer.class));
+    assertTrue(consumer instanceof TracingMessageConsumer);
 
     final TextMessage message = session.createTextMessage("Hello world");
     producer.send(message);

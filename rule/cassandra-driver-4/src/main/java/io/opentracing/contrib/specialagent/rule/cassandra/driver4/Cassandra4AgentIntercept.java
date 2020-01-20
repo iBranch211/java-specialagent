@@ -24,6 +24,8 @@ import io.opentracing.util.GlobalTracer;
 
 public class Cassandra4AgentIntercept {
   public static Object exit(final Object thiz) {
-    return ((CompletionStage<?>)thiz).thenApply(session -> new TracingCqlSession((CqlSession)session, GlobalTracer.get()));
+    return ((CompletionStage<?>)thiz).thenApply(session ->
+      new TracingCqlSession((CqlSession)session, GlobalTracer.get())
+    );
   }
 }

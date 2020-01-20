@@ -18,7 +18,6 @@ package io.opentracing.contrib.specialagent.rule.thrift;
 import org.apache.thrift.TProcessor;
 
 import io.opentracing.Scope;
-import io.opentracing.contrib.specialagent.DynamicProxy;
 import io.opentracing.thrift.DefaultClientSpanDecorator;
 import io.opentracing.thrift.SpanProcessor;
 import io.opentracing.util.GlobalTracer;
@@ -40,6 +39,6 @@ public class ThriftAgentIntercept {
   }
 
   public static Object getProcessor(final Object processor) {
-    return DynamicProxy.wrap(processor, new SpanProcessor((TProcessor)processor));
+    return new SpanProcessor((TProcessor)processor);
   }
 }

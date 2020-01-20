@@ -26,7 +26,6 @@ import akka.pattern.PromiseActorRef;
 import io.opentracing.References;
 import io.opentracing.Scope;
 import io.opentracing.Span;
-import io.opentracing.Tracer;
 import io.opentracing.Tracer.SpanBuilder;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
@@ -47,9 +46,8 @@ public class AkkaAgentIntercept {
       return message;
     }
 
-    final Tracer tracer = GlobalTracer.get();
     final AbstractActor actor = (AbstractActor)thiz;
-    final SpanBuilder spanBuilder = tracer
+    final SpanBuilder spanBuilder = GlobalTracer.get()
       .buildSpan("receive")
       .withTag(Tags.COMPONENT, COMPONENT_NAME)
       .withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_CONSUMER);
@@ -65,7 +63,7 @@ public class AkkaAgentIntercept {
     }
 
     final Span span = spanBuilder.start();
-    final Scope scope = tracer.activateSpan(span);
+    final Scope scope = GlobalTracer.get().activateSpan(span);
 
     final Context context = new Context();
     contextHolder.set(context);
@@ -118,14 +116,13 @@ public class AkkaAgentIntercept {
     if (path.contains("/system/"))
       return message;
 
-    final Tracer tracer = GlobalTracer.get();
-    final Span span = tracer
+    final Span span = GlobalTracer.get()
       .buildSpan(method)
       .withTag(Tags.COMPONENT, COMPONENT_NAME)
       .withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_PRODUCER)
       .withTag(Tags.MESSAGE_BUS_DESTINATION, path).start();
 
-    return new TracedMessage<>(message, span, tracer.activateSpan(span));
+    return new TracedMessage<>(message, span, GlobalTracer.get().activateSpan(span));
   }
 
   public static void askEnd(final Object arg0, final Object message, final Throwable thrown, final Object sender) {

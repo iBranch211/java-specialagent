@@ -20,6 +20,7 @@ import java.util.function.BiFunction;
 
 import io.opentracing.Tracer;
 import io.opentracing.contrib.reactor.TracedSubscriber;
+import io.opentracing.contrib.specialagent.AgentRule;
 import io.opentracing.contrib.specialagent.Logger;
 import io.opentracing.util.GlobalTracer;
 import reactor.core.publisher.Hooks;

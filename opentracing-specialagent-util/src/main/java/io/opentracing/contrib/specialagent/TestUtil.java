@@ -47,25 +47,6 @@ public final class TestUtil {
     return latch;
   }
 
-  private static MockTracer getTracer() {
-    final Tracer tracer = getGlobalTracer();
-    if (tracer instanceof NoopTracer)
-      throw new AssertionError("No tracer is registered");
-
-    return tracer instanceof MockTracer ? (MockTracer)tracer : null;
-  }
-
-  public static void printSpans() {
-    final MockTracer tracer = getTracer();
-    if (tracer != null)
-      printSpans(tracer);
-  }
-
-  private static void printSpans(final MockTracer tracer) {
-    final List<MockSpan> spans = tracer.finishedSpans();
-    System.out.println("Spans: " + spans);
-  }
-
   public static void checkSpan(final String component, final int spanCount) {
     try {
       checkSpan(component, spanCount, null, false);
@@ -87,17 +68,20 @@ public final class TestUtil {
   }
 
   public static void checkSpan(final String component, final int spanCount, final CountDownLatch latch, final boolean sameTrace) throws InterruptedException {
-    final MockTracer tracer = getTracer();
-    if (tracer == null)
+    final Tracer tracer = getGlobalTracer();
+    if (tracer instanceof NoopTracer)
+      throw new AssertionError("No tracer is registered");
+
+    if (!(tracer instanceof MockTracer))
       return;
 
+    final MockTracer mockTracer = (MockTracer)tracer;
     if (latch != null)
       latch.await(15, TimeUnit.SECONDS);
 
-    printSpans(tracer);
-
     boolean found = false;
-    final List<MockSpan> spans = tracer.finishedSpans();
+    final List<MockSpan> spans = mockTracer.finishedSpans();
+    System.out.println("Spans: " + spans);
     for (final MockSpan span : spans) {
       printSpan(span);
       final String spanComponent = (String) span.tags().get(Tags.COMPONENT.getKey());
@@ -122,7 +106,7 @@ public final class TestUtil {
       }
     }
 
-    tracer.reset();
+    mockTracer.reset();
   }
 
   private static void printSpan(final MockSpan span) {
@@ -148,12 +132,6 @@ public final class TestUtil {
         return tracer.finishedSpans().size();
       }
     };
-  }
-
-  public static void resetTracer() {
-    final MockTracer tracer = getTracer();
-    if (tracer != null)
-      tracer.reset();
   }
 
   public static void retry(final Runnable runnable, final int maxRetries) throws Exception {
@@ -211,6 +189,15 @@ public final class TestUtil {
     catch (final IllegalAccessException | NoSuchFieldException e) {
       throw new IllegalStateException(e);
     }
+  }
+
+  public static void resetTracer() {
+    final Tracer tracer = getGlobalTracer();
+
+    if (!(tracer instanceof MockTracer))
+      return;
+
+    ((MockTracer)tracer).reset();
   }
 
   private TestUtil() {

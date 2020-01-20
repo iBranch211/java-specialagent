@@ -22,10 +22,8 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 
 import io.opentracing.Scope;
 import io.opentracing.Span;
-import io.opentracing.Tracer;
 import io.opentracing.contrib.kafka.TracingCallback;
 import io.opentracing.contrib.kafka.TracingKafkaUtils;
-import io.opentracing.contrib.specialagent.DynamicProxy;
 import io.opentracing.util.GlobalTracer;
 
 public class KafkaAgentIntercept {
@@ -35,9 +33,8 @@ public class KafkaAgentIntercept {
   }
 
   public static Object onProducerEnter(final Object record, final Object callback) {
-    final Tracer tracer = GlobalTracer.get();
-    final Span span = TracingKafkaUtils.buildAndInjectSpan((ProducerRecord<?,?>)record, tracer);
-    return DynamicProxy.wrap(callback, new TracingCallback((Callback)callback, span, tracer));
+    final Span span = TracingKafkaUtils.buildAndInjectSpan((ProducerRecord<?,?>)record, GlobalTracer.get());
+    return new TracingCallback((Callback)callback, span, GlobalTracer.get());
   }
 
   @SuppressWarnings({"deprecation", "resource"})

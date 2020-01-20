@@ -61,10 +61,10 @@ public abstract class AgentRule {
     final boolean enabled = initialized && latch.get() == 0;
     if (enabled) {
       if (logger.isLoggable(Level.FINER))
-        logger.finer("-------> Intercept [" + Thread.currentThread().getName() + "] from: " + origin);
+        logger.finer("-------> Intercept from: " + origin);
     }
     else if (logger.isLoggable(Level.FINEST)) {
-      logger.finest("-------> Intercept [" + Thread.currentThread().getName() + "] DROP: " + origin);
+      logger.finest("-------> Intercept DROP: " + origin);
     }
 
     return enabled;
