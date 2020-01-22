@@ -82,7 +82,6 @@
     <module>spring-websocket</module>
     <module>spymemcached</module>
     <module>thrift</module>
-    <module>twilio</module>
     <module>zuul</module>
   </modules>
   <profiles>
