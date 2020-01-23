@@ -37,8 +37,7 @@ public class FilterAgentIntercept extends ServletFilterAgentIntercept {
   public static final Map<ServletResponse,Integer> servletResponseToStatus = new WeakHashMap<>();
 
   public static void init(final Object thiz, final Object filterConfig) {
-    if (filterConfig != null)
-      filterOrServletToServletContext.put(thiz, ((FilterConfig) filterConfig).getServletContext());
+    filterOrServletToServletContext.put(thiz, ((FilterConfig)filterConfig).getServletContext());
   }
 
   public static void doFilter(final Object thiz, final Object req, final Object res, final Object chain) {
