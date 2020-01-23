@@ -15,10 +15,6 @@
 
 package io.opentracing.contrib.specialagent.rule.servlet;
 
-import io.opentracing.contrib.web.servlet.filter.ServletFilterSpanDecorator;
-import io.opentracing.contrib.web.servlet.filter.TracingFilterUtil;
-import java.util.Collections;
-import java.util.List;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRequest;
@@ -40,7 +36,6 @@ public class ServletAgentIntercept extends ServletFilterAgentIntercept {
   }
 
   private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
-  private static final List<ServletFilterSpanDecorator> spanDecorators = Collections.singletonList(ServletFilterSpanDecorator.STANDARD_TAGS);
 
   public static void init(final Object thiz, final Object servletConfig) {
     filterOrServletToServletContext.put(thiz, ((ServletConfig)servletConfig).getServletContext());
@@ -87,7 +82,7 @@ public class ServletAgentIntercept extends ServletFilterAgentIntercept {
 
       spanContext = new Context();
       contextHolder.set(spanContext);
-      final Span span = TracingFilterUtil.buildSpan(httpServletRequest, GlobalTracer.get(), spanDecorators);
+      final Span span = tracingFilter.buildSpan(httpServletRequest);
       spanContext.span = span;
       spanContext.scope = GlobalTracer.get().activateSpan(span);
       if (logger.isLoggable(Level.FINER))
@@ -98,19 +93,22 @@ public class ServletAgentIntercept extends ServletFilterAgentIntercept {
     }
   }
 
-  public static void serviceExit(final Object request, final Object response, final Throwable thrown) {
+  public static void serviceExit(final Object thiz, final Object request, final Object response, final Throwable thrown) {
     try {
       final Context spanContext = contextHolder.get();
       if (spanContext == null)
         return;
 
+      final ServletContext context = getServletContext((HttpServlet)thiz);
+      final TracingFilter tracingFilter = getFilter(context, true);
+
       final HttpServletRequest httpRequest = (HttpServletRequest)request;
       final HttpServletResponse httpResponse = (HttpServletResponse)response;
 
       if (thrown != null)
-        TracingFilterUtil.onError(httpRequest, httpResponse, thrown, spanContext.span, spanDecorators);
+        tracingFilter.onError(httpRequest, httpResponse, thrown, spanContext.span);
       else
-        TracingFilterUtil.onResponse(httpRequest, httpResponse, spanContext.span, spanDecorators);
+        tracingFilter.onResponse(httpRequest, httpResponse, spanContext.span);
 
       spanContext.scope.close();
       spanContext.span.finish();
