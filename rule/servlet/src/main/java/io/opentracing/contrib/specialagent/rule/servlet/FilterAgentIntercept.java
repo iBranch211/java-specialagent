@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.rule.servlet;
 
-import io.opentracing.util.GlobalTracer;
 import java.io.IOException;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -27,7 +26,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import io.opentracing.contrib.specialagent.AgentRuleUtil;
@@ -39,8 +37,7 @@ public class FilterAgentIntercept extends ServletFilterAgentIntercept {
   public static final Map<ServletResponse,Integer> servletResponseToStatus = new WeakHashMap<>();
 
   public static void init(final Object thiz, final Object filterConfig) {
-    if (filterConfig != null)
-      filterOrServletToServletContext.put(thiz, ((FilterConfig) filterConfig).getServletContext());
+    filterOrServletToServletContext.put(thiz, ((FilterConfig)filterConfig).getServletContext());
   }
 
   public static void doFilter(final Object thiz, final Object req, final Object res, final Object chain) {
@@ -54,7 +51,7 @@ public class FilterAgentIntercept extends ServletFilterAgentIntercept {
       if (!ContextAgentIntercept.invoke(context, request, getMethod(request.getClass(), "getServletContext")) || context[0] == null)
         context[0] = filterOrServletToServletContext.get(filter);
 
-      final TracingFilter tracingFilter = context[0] == null ? new TracingProxyFilter(GlobalTracer.get(), null) : getFilter(context[0], true);
+      final TracingFilter tracingFilter = getFilter(context[0], true);
 
       // If the tracingFilter instance is not a TracingProxyFilter, then it was
       // created with ServletContext#addFilter. Therefore, the intercept of the
