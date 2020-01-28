@@ -15,25 +15,25 @@
 
 package io.opentracing.contrib.specialagent.rule.akka.actor;
 
-import io.opentracing.SpanContext;
-import io.opentracing.Tracer;
-import io.opentracing.propagation.Format;
-import java.util.Map;
+import io.opentracing.Scope;
+import io.opentracing.Span;
 
-public class TracedMessage<T> {
-  private T message;
-  private Map<String, String> headers;
+public final class TracedMessage<T> {
+  public final T message;
+  public final Span span;
+  private Scope scope;
 
-  public TracedMessage(final T message, final Map<String, String> headers) {
+  public TracedMessage(final T message, final Span span, final Scope scope) {
     this.message = message;
-    this.headers = headers;
+    this.span = span;
+    this.scope = scope;
   }
 
-  public T getMessage() {
-    return message;
-  }
-
-  public SpanContext spanContext(Tracer tracer) {
-    return tracer.extract(Format.Builtin.TEXT_MAP_EXTRACT, () -> headers.entrySet().iterator());
+  public void closeScopeAndSpan() {
+    if (scope != null) {
+      scope.close();
+      scope = null;
+      span.finish();
+    }
   }
 }
