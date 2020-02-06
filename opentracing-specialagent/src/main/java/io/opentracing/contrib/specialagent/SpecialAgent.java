@@ -347,7 +347,6 @@ public class SpecialAgent extends SpecialAgentBase {
     if (count == 0)
       logger.log(Level.SEVERE, "Could not find " + DEPENDENCIES_TGF + " in any rule JARs");
 
-    AgentRule.loadThreadInstrumentable();
     deferredTracer = loadTracer();
     loadRules(manager);
   }
@@ -553,7 +552,6 @@ public class SpecialAgent extends SpecialAgentBase {
             logger.info("  " + deferrer.getClass().getName());
 
           if (attachMode == AttachMode.STATIC_DEFERRED) {
-            // Just load the deferrers
             manager.loadRules(deferrers, events);
             return;
           }

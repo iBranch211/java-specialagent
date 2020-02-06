@@ -17,7 +17,9 @@ package io.opentracing.contrib.specialagent;
 
 import java.lang.instrument.Instrumentation;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import net.bytebuddy.agent.builder.AgentBuilder;
 
@@ -34,25 +36,6 @@ public abstract class AgentRule {
 
   static Runnable init;
 
-  static final InheritableThreadLocal<Boolean> isThreadInstrumentable = new InheritableThreadLocal<Boolean>() {
-    @Override
-    protected Boolean childValue(final Boolean parentValue) {
-      if (!parentValue || AgentRuleUtil.tracerClassLoader == null)
-        return parentValue;
-
-      return !AgentRuleUtil.isFromClassLoader(AgentRuleUtil.getExecutionStack(), AgentRuleUtil.tracerClassLoader);
-    }
-  };
-
-  /**
-   * This method should be called before tracer classes are loaded, in order to
-   * load the class and initialize {@link AgentRule#isThreadInstrumentable}.
-   */
-  static void loadThreadInstrumentable() {
-    // "main" thread is instrumentable
-    isThreadInstrumentable.set(Boolean.TRUE);
-  }
-
   /**
    * Initialize all {@link AgentRule}s.
    *
@@ -67,6 +50,8 @@ public abstract class AgentRule {
     return true;
   }
 
+  public static final Set<Long> tracerThreadIds = new HashSet<>();
+
   public static class Latch extends ThreadLocal<Integer> {
     @Override
     protected Integer initialValue() {
@@ -77,14 +62,14 @@ public abstract class AgentRule {
   public static final Latch latch = new Latch();
 
   public static boolean isEnabled(final String agentRuleClass, final String origin) {
-    final boolean enabled = initialized && latch.get() == 0 && isThreadInstrumentable.get();
-
+    final Thread thread = Thread.currentThread();
+    final boolean enabled = initialized && latch.get() == 0 && !tracerThreadIds.contains(thread.getId());
     if (enabled) {
       if (logger.isLoggable(Level.FINER))
-        logger.finer("-------> Intercept [" + agentRuleClass + "@" + Thread.currentThread().getName() + "]: " + origin);
+        logger.finer("-------> Intercept [" + agentRuleClass + "@" + thread.getName() + "]: " + origin);
     }
     else if (logger.isLoggable(Level.FINEST)) {
-      logger.finest("-------> Intercept [" + agentRuleClass + "@" + Thread.currentThread().getName() + "] DROP: " + origin);
+      logger.finest("-------> Intercept [" + agentRuleClass + "@" + thread.getName() + "] DROP: " + origin);
     }
 
     return enabled;

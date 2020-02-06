@@ -76,7 +76,7 @@ public class BootLoaderAgent {
         BootLoaderAgent.jarFiles.add(jarFile);
 
     final AgentBuilder builder = new AgentBuilder.Default()
-      .ignore(nameStartsWith("net.bytebuddy.").or(nameStartsWith("sun.reflect.")).or(isSynthetic()), any(), any())
+      .ignore(none())
       .disableClassFormatChanges()
       .with(RedefinitionStrategy.RETRANSFORMATION)
       .with(InitializationStrategy.NoOp.INSTANCE)

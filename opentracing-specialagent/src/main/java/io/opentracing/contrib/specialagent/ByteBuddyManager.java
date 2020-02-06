@@ -68,7 +68,7 @@ public class ByteBuddyManager extends Manager {
       agentBuilder = agentBuilder.ignore(any(), is(AgentRuleUtil.tracerClassLoader));
 
     return agentBuilder
-      .ignore(nameStartsWith("net.bytebuddy.").or(nameStartsWith("sun.reflect.")).or(isSynthetic()), any(), any())
+      .ignore(none())
       .disableClassFormatChanges()
       .with(RedefinitionStrategy.RETRANSFORMATION)
       .with(InitializationStrategy.NoOp.INSTANCE)
@@ -185,29 +185,21 @@ public class ByteBuddyManager extends Manager {
     return deferrers;
   }
 
-  private boolean loadedCoreRules;
-
-  private void loadCoreRules(final Event[] events) throws Exception {
-    if (loadedCoreRules)
-      return;
-
-    loadedCoreRules = true;
-
-    // Load ClassLoaderAgentRule
-    loadAgentRule(new ClassLoaderAgentRule(), newBuilder(), -1, events);
-
-    // Load ThreadMutexAgent
-//    loadAgentRule(new ThreadMutexAgent(), newBuilder(), -1, events);
-
-    // Load the Mutex Agent
-    MutexAgent.premain(inst);
-  }
-
   @Override
   void loadRules(final Map<AgentRule,Integer> agentRules, final Event[] events) {
     AgentRule agentRule = null;
     try {
-      loadCoreRules(events);
+      // Load ClassLoader Agent
+      agentRule = new ClassLoaderAgentRule();
+      loadAgentRule(agentRule, newBuilder(), -1, events);
+
+      // Load ClassLoader Agent
+      agentRule = new ThreadMutexAgent();
+      loadAgentRule(agentRule, newBuilder(), -1, events);
+
+      // Load the Mutex Agent
+      TracerMutexAgent.premain(inst);
+
       for (final Map.Entry<AgentRule,Integer> entry : agentRules.entrySet()) {
         agentRule = entry.getKey();
         loadAgentRule(agentRule, newBuilder(), entry.getValue(), events);
