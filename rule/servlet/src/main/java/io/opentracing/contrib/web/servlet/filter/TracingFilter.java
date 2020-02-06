@@ -163,17 +163,12 @@ public class TracingFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) servletRequest;
         HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
 
-        if (ServletFilterAgentIntercept.servletRequestToState.containsKey(servletRequest)) {
+        if (ServletFilterAgentIntercept.servletRequestToState.containsKey(servletRequest) || !isTraced(httpRequest, httpResponse)) {
             chain.doFilter(httpRequest, httpResponse);
             return;
         }
+
         ServletFilterAgentIntercept.servletRequestToState.put(servletRequest, Boolean.TRUE);
-
-        if (!isTraced(httpRequest, httpResponse)) {
-            chain.doFilter(httpRequest, httpResponse);
-            return;
-        }
-
         if (ServletFilterAgentIntercept.logger.isLoggable(Level.FINER))
           ServletFilterAgentIntercept.logger.finer(">> " + getClass().getSimpleName() + "#doFilter(" + AgentRuleUtil.getSimpleNameId(servletRequest) + "," + AgentRuleUtil.getSimpleNameId(servletResponse) + "," + AgentRuleUtil.getSimpleNameId(chain) + ")");
 
@@ -233,8 +228,7 @@ public class TracingFilter implements Filter {
         // skip URLs matching skip pattern
         // e.g. pattern is defined as '/health|/status' then URL 'http://localhost:5000/context/health' won't be traced
         if (skipPattern != null) {
-        	int contextLength = httpServletRequest.getContextPath() == null ? 0 : httpServletRequest.getContextPath().length();
-            String url = httpServletRequest.getRequestURI().substring(contextLength);
+            String url = httpServletRequest.getRequestURI().substring(httpServletRequest.getContextPath().length());
             return !skipPattern.matcher(url).matches();
         }
 

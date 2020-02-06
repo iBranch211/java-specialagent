@@ -22,7 +22,6 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.http.HttpServletResponse;
@@ -55,14 +54,10 @@ public class JettyServletTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-	System.setProperty(InterceptUtil.SPAN_DECORATORS, "io.opentracing.contrib.specialagent.rule.servlet.MockSpanDecorator");
-	System.setProperty(InterceptUtil.SKIP_PATTERN, "/skipit");
-
-	server = new Server(0);
+    server = new Server(0);
 
     final ServletHandler servletHandler = new ServletHandler();
     servletHandler.addServletWithMapping(MockServlet.class, "/hello");
-    servletHandler.addServletWithMapping(MockServlet.class, "/skipit");
     servletHandler.addFilterWithMapping(MockFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
     server.setHandler(servletHandler);
 
@@ -85,16 +80,6 @@ public class JettyServletTest {
 
     final List<MockSpan> spans = tracer.finishedSpans();
     assertEquals("MockTracer spans: " + spans, 1, spans.size());
-    assertEquals("MockTracer tagging: ", MockSpanDecorator.MOCK_TAG_VALUE, spans.get(0).tags().get(MockSpanDecorator.MOCK_TAG_KEY));
-
-    final Request noTraceRequest = new Request.Builder().url("http://localhost:" + serverPort + "/skipit").build();
-    final Response noTraceResponse = client.newCall(noTraceRequest).execute();
-
-    assertEquals("MockServlet response", HttpServletResponse.SC_ACCEPTED, noTraceResponse.code());
-    assertEquals("MockServlet count", 2, MockServlet.count);
-    assertEquals("MockFilter count", 2, MockFilter.count);
-    final List<MockSpan> no_change_spans = tracer.finishedSpans();
-    assertEquals("MockTracer spans: " + no_change_spans, 1, no_change_spans.size());
   }
 
   @AfterClass
