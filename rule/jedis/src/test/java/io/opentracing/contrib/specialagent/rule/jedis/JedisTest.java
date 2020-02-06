@@ -15,28 +15,26 @@
 
 package io.opentracing.contrib.specialagent.rule.jedis;
 
-import io.opentracing.contrib.specialagent.AgentRunner;
-import io.opentracing.contrib.specialagent.TestUtil;
-import io.opentracing.mock.MockSpan;
-import io.opentracing.mock.MockTracer;
-import io.opentracing.tag.Tags;
+import static org.junit.Assert.*;
+
+import java.util.List;
+import java.util.concurrent.Callable;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import io.opentracing.contrib.specialagent.AgentRunner;
+import io.opentracing.contrib.specialagent.TestUtil;
+import io.opentracing.mock.MockSpan;
+import io.opentracing.mock.MockTracer;
+import io.opentracing.tag.Tags;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.embedded.RedisServer;
-
-import java.util.List;
-import java.util.concurrent.Callable;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 
 @RunWith(AgentRunner.class)
 public class JedisTest {
@@ -81,9 +79,6 @@ public class JedisTest {
     final List<MockSpan> spans = tracer.finishedSpans();
     assertEquals(2, spans.size());
     checkSpans(spans);
-    for (MockSpan span : spans) {
-      assertNull(span.tags().get(Tags.ERROR.getKey()));
-    }
   }
 
   @Test
