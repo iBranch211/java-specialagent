@@ -65,9 +65,6 @@
         <module>lettuce-5.0</module>
         <module>lettuce-5.1</module>
         <module>lettuce-5.2</module>
-        <module>mule-4-core</module>
-        <module>mule-4-http-service</module>
-        <module>mule-4-module-artifact</module>
         <module>spring-web-3</module>
         <module>spring-web-4.0</module>
         <module>spring-web-4</module>
@@ -101,6 +98,7 @@
         <module>neo4j-driver</module>
         <module>netty</module>
         <module>pulsar-client</module>
+        <module>pulsar-functions</module>
         <module>dynamic</module>
       </modules>
       <build>
