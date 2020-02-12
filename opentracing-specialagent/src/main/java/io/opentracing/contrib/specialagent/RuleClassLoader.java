@@ -38,7 +38,12 @@ import java.util.List;
 class RuleClassLoader extends URLClassLoader {
   private static final Logger logger = Logger.getLogger(RuleClassLoader.class);
   private static final String SKIP_FINGERPRINT = "sa.fingerprint.skip";
-  private static final boolean skipFingerprint = AssembleUtil.isSystemProperty(SKIP_FINGERPRINT);
+  private static final boolean skipFingerprint;
+
+  static {
+    final String property = System.getProperty(SKIP_FINGERPRINT);
+    skipFingerprint = property != null && !"false".equalsIgnoreCase(property);
+  }
 
   /**
    * Callback that is used to load a class by the specified resource path into
