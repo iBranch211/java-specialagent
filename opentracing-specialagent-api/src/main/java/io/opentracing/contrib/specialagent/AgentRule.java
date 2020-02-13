@@ -131,15 +131,16 @@ public abstract class AgentRule {
   }
 
   public static boolean isVerbose(final Class<? extends AgentRule> agentRuleClass) {
-    final boolean pluginsVerbose = AssembleUtil.isSystemProperty("sa.instrumentation.plugin.*.verbose");
-    if (pluginsVerbose)
-      return pluginsVerbose;
+    final String pluginsVerboseProperty = System.getProperty("sa.instrumentation.plugin.*.verbose");
+    final boolean pluginsVerbose = pluginsVerboseProperty != null && !"false".equals(pluginsVerboseProperty);
 
     final String pluginName = classNameToName.get(agentRuleClass.getName());
     if (pluginName == null)
       throw new IllegalStateException("Plugin name must not be null");
 
-    return AssembleUtil.isSystemProperty("sa.instrumentation.plugin." + pluginName + ".verbose");
+    final String pluginVerboseProperty = System.getProperty("sa.instrumentation.plugin." + pluginName + ".verbose");
+    final boolean pluginVerbose = pluginVerboseProperty != null && !"false".equals(pluginVerboseProperty);
+    return pluginsVerbose || pluginVerbose;
   }
 
   /**
