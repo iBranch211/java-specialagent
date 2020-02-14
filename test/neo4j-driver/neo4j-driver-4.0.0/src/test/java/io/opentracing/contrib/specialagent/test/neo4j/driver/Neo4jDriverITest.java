@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.test.neo4j.driver;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Query;
@@ -42,6 +41,6 @@ public class Neo4jDriverITest {
       }
     }
 
-    TestUtil.checkSpan(new ComponentSpanCount("java-neo4j", 2));
+    TestUtil.checkSpan("java-neo4j", 2);
   }
 }

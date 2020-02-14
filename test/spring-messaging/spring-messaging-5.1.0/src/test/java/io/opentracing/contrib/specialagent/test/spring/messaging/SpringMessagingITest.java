@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.test.spring.messaging;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -102,7 +101,7 @@ public class SpringMessagingITest {
 
     final CountDownLatch latch = TestUtil.initExpectedSpanLatch(5);
     try (final ConfigurableApplicationContext context = SpringApplication.run(SpringMessagingITest.class, args)) {
-      TestUtil.checkSpan(true, latch, new ComponentSpanCount("spring-messaging", 2, true), new ComponentSpanCount("java-kafka", 2, true), new ComponentSpanCount("spring-kafka", 1));
+      TestUtil.checkSpan("spring-messaging", 5, latch);
     }
     catch (final Throwable t) {
       t.printStackTrace(System.err);

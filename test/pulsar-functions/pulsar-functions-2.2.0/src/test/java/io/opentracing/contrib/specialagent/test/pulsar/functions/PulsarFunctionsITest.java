@@ -18,7 +18,6 @@ package io.opentracing.contrib.specialagent.test.pulsar.functions;
 import static org.awaitility.Awaitility.*;
 import static org.hamcrest.core.IsEqual.*;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -178,7 +177,7 @@ public class PulsarFunctionsITest {
       }
     }
 
-    TestUtil.checkSpan(new ComponentSpanCount("java-pulsar-functions", 1));
+    TestUtil.checkSpan("java-pulsar-functions", 5);
   }
 
   private static FunctionDetails createSinkConfig(final String jarFile, final String namespace, final String functionName, final String sourceTopic, final String sinkTopic, final String subscriptionName) {

@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.test.twilio;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.lang.reflect.Method;
 import java.net.URI;
 
@@ -70,6 +69,6 @@ public class TwilioITest {
     }
 
     // Twilio uses Apache HttpClient
-    TestUtil.checkSpan(new ComponentSpanCount("java-httpclient", 4));
+    TestUtil.checkSpan("java-httpclient", 4);
   }
 }

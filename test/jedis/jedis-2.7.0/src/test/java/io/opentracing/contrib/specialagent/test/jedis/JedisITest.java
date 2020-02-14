@@ -16,7 +16,6 @@
 package io.opentracing.contrib.specialagent.test.jedis;
 
 import io.opentracing.contrib.specialagent.TestUtil;
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import redis.clients.jedis.Jedis;
 import redis.embedded.RedisServer;
 
@@ -37,7 +36,7 @@ public class JedisITest {
       if (!"value".equals(jedis.get("key")))
         throw new AssertionError("ERROR: failed to get key value");
 
-      TestUtil.checkSpan(new ComponentSpanCount("java-redis", 2));
+      TestUtil.checkSpan("java-redis", 2);
       jedis.shutdown();
     }
 

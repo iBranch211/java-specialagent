@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.test.zuul;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -31,7 +30,7 @@ import io.opentracing.contrib.specialagent.TestUtil;
 public class ZuulITest {
   public static void main(final String[] args) {
     SpringApplication.run(ZuulITest.class, args).close();
-    TestUtil.checkSpan(true, new ComponentSpanCount("zuul", 1), new ComponentSpanCount("java-spring-rest-template", 1), new ComponentSpanCount("java-web-servlet", 1));
+    TestUtil.checkSpan("zuul", 4);
   }
 
   @Bean

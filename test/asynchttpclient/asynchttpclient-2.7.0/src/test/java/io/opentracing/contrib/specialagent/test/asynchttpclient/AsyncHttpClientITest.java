@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.test.asynchttpclient;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.util.concurrent.TimeUnit;
 
 import org.asynchttpclient.AsyncCompletionHandler;
@@ -43,7 +42,9 @@ public class AsyncHttpClientITest {
       if (200 != statusCode)
         throw new AssertionError("ERROR: response: " + statusCode);
 
-      TestUtil.checkSpan(true, new ComponentSpanCount("java-asynchttpclient", 1), new ComponentSpanCount("netty", 1));
+      // 1 AsyncHttpClient span
+      // 1 Netty span
+      TestUtil.checkSpan("java-asynchttpclient", 2, true);
     }
   }
 }

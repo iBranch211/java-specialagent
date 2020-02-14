@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.test.mongo.driver;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
@@ -79,6 +78,6 @@ public class MongoReactiveITest {
     }
 
     server.shutdownNow();
-    TestUtil.checkSpan(new ComponentSpanCount("java-mongo", 1));
+    TestUtil.checkSpan("java-mongo", 1);
   }
 }

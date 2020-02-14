@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.test.jms2;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.io.File;
 import java.util.HashSet;
 
@@ -77,7 +76,7 @@ public class Jms2ITest {
     }
 
     server.stop(true);
-    TestUtil.checkSpan(new ComponentSpanCount("java-jms", 2, true));
+    TestUtil.checkSpan("java-jms", 2);
     System.exit(0);
   }
 }

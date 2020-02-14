@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.test.spring.web;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import org.springframework.web.client.RestTemplate;
 
 import io.opentracing.contrib.specialagent.TestUtil;
@@ -25,6 +24,6 @@ public class SpringWebITest {
     final RestTemplate restTemplate = new RestTemplate();
     restTemplate.getForObject("http://www.google.com", String.class);
 
-    TestUtil.checkSpan(new ComponentSpanCount("java-spring-rest-template", 1));
+    TestUtil.checkSpan("java-spring-rest-template", 1);
   }
 }

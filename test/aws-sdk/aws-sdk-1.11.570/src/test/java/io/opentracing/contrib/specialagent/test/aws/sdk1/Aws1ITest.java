@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.test.aws.sdk1;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.amazonaws.ClientConfiguration;
@@ -51,7 +50,7 @@ public class Aws1ITest {
 
     server.stop();
     dbClient.shutdown();
-    TestUtil.checkSpan(new ComponentSpanCount("java-aws-sdk", 1));
+    TestUtil.checkSpan("java-aws-sdk", 1);
     System.exit(0);
   }
 

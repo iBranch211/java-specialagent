@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.test.kafka.client;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -70,7 +69,7 @@ public class KafkaClientITest {
       createConsumer(embeddedKafkaRule, latch);
       latch.await(15, TimeUnit.SECONDS);
 
-      TestUtil.checkSpan(new ComponentSpanCount("java-kafka", 10));
+      TestUtil.checkSpan("java-kafka", 10);
     }
     catch (final Throwable t) {
       t.printStackTrace(System.err);

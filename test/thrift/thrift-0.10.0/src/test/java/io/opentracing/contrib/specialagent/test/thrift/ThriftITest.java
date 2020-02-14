@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.test.thrift;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.thrift.TProcessorFactory;
@@ -50,7 +49,7 @@ public class ThriftITest {
     if (!"Say one two".equals(res))
       throw new AssertionError("ERROR: wrong result");
 
-    TestUtil.checkSpan(latch, new ComponentSpanCount("java-thrift", 2, true));
+    TestUtil.checkSpan("java-thrift", 2, latch);
 
     server.stop();
     transport.close();

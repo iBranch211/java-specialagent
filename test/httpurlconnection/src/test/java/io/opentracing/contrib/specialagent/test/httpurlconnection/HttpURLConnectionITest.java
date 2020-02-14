@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.test.httpurlconnection;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -31,6 +30,6 @@ public class HttpURLConnectionITest {
     if (200 != responseCode)
       throw new AssertionError("ERROR: response: " + responseCode);
 
-    TestUtil.checkSpan(new ComponentSpanCount("http-url-connection", 1));
+    TestUtil.checkSpan("http-url-connection", 1);
   }
 }

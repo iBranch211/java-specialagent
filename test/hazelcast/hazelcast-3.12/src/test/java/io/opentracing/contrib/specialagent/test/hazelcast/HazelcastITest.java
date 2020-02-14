@@ -21,7 +21,6 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
 import io.opentracing.contrib.specialagent.TestUtil;
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 
 public class HazelcastITest {
   public static void main(final String[] args) {
@@ -33,6 +32,6 @@ public class HazelcastITest {
 
     instance.shutdown();
 
-    TestUtil.checkSpan(new ComponentSpanCount("java-hazelcast", 2));
+    TestUtil.checkSpan("java-hazelcast", 2);
   }
 }

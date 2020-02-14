@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.test.okhttp;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.io.IOException;
 
 import io.opentracing.contrib.specialagent.TestUtil;
@@ -31,12 +30,12 @@ public class OkHttpITest {
 
   private static void testBuilder() throws IOException {
     test(new OkHttpClient.Builder().build());
-    TestUtil.checkSpan(new ComponentSpanCount("okhttp", 2, true));
+    TestUtil.checkSpan("okhttp", 2);
   }
 
   private static void testClient() throws IOException {
     test(new OkHttpClient());
-    TestUtil.checkSpan(new ComponentSpanCount("okhttp", 2, true));
+    TestUtil.checkSpan("okhttp", 2);
   }
 
   private static void test(final OkHttpClient client) throws IOException {

@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.test.grizzlyhttpclient;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
@@ -41,6 +40,6 @@ public class GrizzlyHttpClientITest {
         throw new AssertionError("ERROR: response: " + statusCode);
     }
 
-    TestUtil.checkSpan(new ComponentSpanCount("java-grizzly-ahc", 2));
+    TestUtil.checkSpan("java-grizzly-ahc", 2);
   }
 }

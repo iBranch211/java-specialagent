@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.test.grpc;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
@@ -41,7 +40,7 @@ public class GrpcITest {
     greeterBlockingStub.sayHello(HelloRequest.newBuilder().setName("world").build()).getMessage();
     server.shutdownNow();
 
-    TestUtil.checkSpan(latch, new ComponentSpanCount("java-grpc", 2) );
+    TestUtil.checkSpan("java-grpc", 2, latch);
   }
 
   private static class GreeterImpl extends GreeterGrpc.GreeterImplBase {

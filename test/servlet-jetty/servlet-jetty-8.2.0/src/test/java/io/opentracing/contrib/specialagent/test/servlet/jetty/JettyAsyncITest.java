@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.test.servlet.jetty;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -63,6 +62,6 @@ public class JettyAsyncITest {
       server.join();
     }
 
-    TestUtil.checkSpan(true, new ComponentSpanCount("java-web-servlet", 1), new ComponentSpanCount("http-url-connection", 1));
+    TestUtil.checkSpan("java-web-servlet", 2);
   }
 }

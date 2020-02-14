@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.test.lettuce;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.lang.reflect.Method;
 
 import io.lettuce.core.RedisClient;
@@ -64,7 +63,7 @@ public class LettuceITest {
         }
       }
 
-      TestUtil.checkSpan(new ComponentSpanCount("java-redis", expectedSpanCount));
+      TestUtil.checkSpan("java-redis", expectedSpanCount);
     }
 
     client.shutdown();

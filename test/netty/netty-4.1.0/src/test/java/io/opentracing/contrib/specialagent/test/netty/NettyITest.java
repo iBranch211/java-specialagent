@@ -40,7 +40,6 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.opentracing.contrib.specialagent.TestUtil;
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 
 public class NettyITest {
   public static void main(final String[] args) throws InterruptedException {
@@ -69,7 +68,7 @@ public class NettyITest {
       workerGroup.shutdownGracefully();
     }
 
-    TestUtil.checkSpan(new ComponentSpanCount("netty", 2, true));
+    TestUtil.checkSpan("netty", 2, true);
   }
 
   private static void client() throws InterruptedException {

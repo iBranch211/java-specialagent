@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.test.rabbitmq.client;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.util.concurrent.CountDownLatch;
 
 import com.rabbitmq.client.CancelCallback;
@@ -61,7 +60,7 @@ public class RabbitMQClientITest {
         }
       });
 
-      TestUtil.checkSpan(latch, new ComponentSpanCount("java-rabbitmq", 2));
+      TestUtil.checkSpan("java-rabbitmq", 2, latch);
     }
 
     broker.shutdown();

@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.test.spring.websocket;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +78,7 @@ public class SpringWebSocketITest {
   public static void main(final String[] args) throws Exception {
     final CountDownLatch latch = TestUtil.initExpectedSpanLatch(6);
     try (final ConfigurableApplicationContext context = SpringApplication.run(SpringWebSocketITest.class, args)) {
-      TestUtil.checkSpan(true, latch, new ComponentSpanCount("websocket", 2), new ComponentSpanCount("stomp-session", 1));
+      TestUtil.checkSpan("websocket", 6, latch);
     }
   }
 

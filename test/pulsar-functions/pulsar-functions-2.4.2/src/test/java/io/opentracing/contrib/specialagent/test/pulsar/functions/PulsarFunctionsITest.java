@@ -20,7 +20,6 @@ import static org.awaitility.Awaitility.*;
 import static org.hamcrest.core.IsEqual.*;
 import static org.mockito.Mockito.*;
 
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.io.File;
 import java.net.URL;
 import java.util.Optional;
@@ -158,7 +157,7 @@ public class PulsarFunctionsITest {
       consumer.receive(15, TimeUnit.SECONDS);
     }
 
-    TestUtil.checkSpan(new ComponentSpanCount("java-pulsar-functions", 1));
+    TestUtil.checkSpan("java-pulsar-functions", 15);
   }
 
   private static FunctionConfig createFunctionConfig(final String namespace, final String functionName, final String sourceTopic, final String sinkTopic, final String subscriptionName) {
