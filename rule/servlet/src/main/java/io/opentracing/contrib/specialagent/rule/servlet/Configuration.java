@@ -15,6 +15,10 @@
 
 package io.opentracing.contrib.specialagent.rule.servlet;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -30,11 +34,13 @@ import io.opentracing.contrib.web.servlet.filter.decorator.ServletFilterHeaderSp
 public class Configuration {
   public static final Logger logger = Logger.getLogger(Configuration.class);
   public static final String SPAN_DECORATORS = "sa.instrumentation.plugin.servlet.spanDecorators";
+  public static final String SPAN_DECORATORS_CLASSPATH = "sa.instrumentation.plugin.servlet.spanDecorators.classpath";
   public static final String SKIP_PATTERN = "sa.instrumentation.plugin.servlet.skipPattern";
   public static final String DECORATOR_SEPARATOR = ",";
 
   public static final List<ServletFilterSpanDecorator> spanDecorators = parseSpanDecorators(System.getProperty(SPAN_DECORATORS));
   public static final Pattern skipPattern = parseSkipPattern(System.getProperty(SKIP_PATTERN));
+  private static ClassLoader decoratorClassLoader;
 
   public static boolean isTraced(final HttpServletRequest httpServletRequest) {
     if (skipPattern == null)
@@ -69,7 +75,7 @@ public class Configuration {
 
   private static ServletFilterSpanDecorator newSpanDecoratorInstance(final String className) {
     try {
-      final Class<?> decoratorClass = Class.forName(className);
+      final Class<?> decoratorClass = getDecoratorClassLoader().loadClass(className);
       if (ServletFilterSpanDecorator.class.isAssignableFrom(decoratorClass))
         return (ServletFilterSpanDecorator)decoratorClass.newInstance();
 
@@ -80,5 +86,28 @@ public class Configuration {
     }
 
     return null;
+  }
+
+  private static ClassLoader getDecoratorClassLoader() {
+    if (decoratorClassLoader != null)
+      return decoratorClassLoader;
+
+    final String spanDecoratorsClassPath = System.getProperty(SPAN_DECORATORS_CLASSPATH);
+    if (spanDecoratorsClassPath == null || spanDecoratorsClassPath.isEmpty())
+      return decoratorClassLoader = ServletFilterSpanDecorator.class.getClassLoader();
+
+    final String[] parts = spanDecoratorsClassPath.split(File.pathSeparator);
+    final URL[] urls = new URL[parts.length];
+    for (int i = 0; i < parts.length; ++i) {
+      final String part = parts[i];
+      try {
+        urls[i] = new URL("file", "", part.endsWith(".jar") || part.endsWith("/") ? part : part + "/");
+      }
+      catch (final MalformedURLException e) {
+        logger.log(Level.WARNING, part + "is not a valid URL");
+      }
+    }
+
+    return decoratorClassLoader = new URLClassLoader(urls, ServletFilterSpanDecorator.class.getClassLoader());
   }
 }
