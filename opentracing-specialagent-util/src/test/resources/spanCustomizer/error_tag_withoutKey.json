@@ -1,8 +1,0 @@
-{
-  "expectedError": "test: rule 0: tag without a key is not allowed",
-  "rules": [
-    {
-      "type": "tag"
-    }
-  ]
-}
