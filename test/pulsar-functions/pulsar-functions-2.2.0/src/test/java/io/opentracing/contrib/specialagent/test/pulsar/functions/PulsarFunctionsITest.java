@@ -18,6 +18,7 @@ package io.opentracing.contrib.specialagent.test.pulsar.functions;
 import static org.awaitility.Awaitility.*;
 import static org.hamcrest.core.IsEqual.*;
 
+import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -55,7 +56,6 @@ import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 
 import io.opentracing.contrib.specialagent.TestUtil;
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 
 public class PulsarFunctionsITest {
   private static final String CLUSTER_NAME = "use";
