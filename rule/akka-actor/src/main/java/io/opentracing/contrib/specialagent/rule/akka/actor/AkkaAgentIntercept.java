@@ -15,8 +15,6 @@
 
 package io.opentracing.contrib.specialagent.rule.akka.actor;
 
-import io.opentracing.contrib.specialagent.LocalSpanContext;
-import io.opentracing.contrib.specialagent.SpanUtil;
 import io.opentracing.propagation.Format;
 import java.util.HashMap;
 
@@ -34,12 +32,18 @@ import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class AkkaAgentIntercept {
-  private static final ThreadLocal<LocalSpanContext> contextHolder = new ThreadLocal<>();
+  private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
   static final String COMPONENT_NAME = "java-akka";
+
+  private static class Context {
+    private Scope scope;
+    private Span span;
+    private int counter = 1;
+  }
 
   public static Object aroundReceiveStart(final Object thiz, final Object message) {
     if (!(message instanceof TracedMessage) && contextHolder.get() != null) {
-      contextHolder.get().increment();
+      ++contextHolder.get().counter;
       return message;
     }
 
@@ -63,24 +67,27 @@ public class AkkaAgentIntercept {
     final Span span = spanBuilder.start();
     final Scope scope = tracer.activateSpan(span);
 
-    final LocalSpanContext context = new LocalSpanContext(span, scope);
+    final Context context = new Context();
     contextHolder.set(context);
+    context.scope = scope;
+    context.span = span;
 
     return tracedMessage != null ? tracedMessage.getMessage() : message;
   }
 
   public static void aroundReceiveEnd(final Throwable thrown) {
-    final LocalSpanContext context = contextHolder.get();
+    final Context context = contextHolder.get();
     if (context == null)
       return;
 
-    if (context.decrementAndGet() != 0)
+    if (--context.counter != 0)
       return;
 
     if (thrown != null)
-      SpanUtil.onError(thrown, context.getSpan());
+      onError(thrown, context.span);
 
-    context.closeAndFinish();
+    context.scope.close();
+    context.span.finish();
     contextHolder.remove();
   }
 
@@ -120,8 +127,10 @@ public class AkkaAgentIntercept {
 
     final Scope scope = tracer.activateSpan(span);
 
-    final LocalSpanContext context = new LocalSpanContext(span, scope);
+    final Context context = new Context();
     contextHolder.set(context);
+    context.scope = scope;
+    context.span = span;
 
     return new TracedMessage<>(message, headers);
   }
@@ -130,15 +139,28 @@ public class AkkaAgentIntercept {
     if (sender instanceof PromiseActorRef || arg0 instanceof PromiseActorRef || !(message instanceof TracedMessage))
       return;
 
-    final LocalSpanContext context = contextHolder.get();
+    final Context context = contextHolder.get();
     if (context == null)
       return;
 
     if (thrown != null)
-      SpanUtil.onError(thrown, context.getSpan());
+      onError(thrown, context.span);
 
-    context.closeAndFinish();
+    context.scope.close();
+    context.span.finish();
     contextHolder.remove();
   }
 
+  private static void onError(final Throwable t, final Span span) {
+    Tags.ERROR.set(span, Boolean.TRUE);
+    if (t != null)
+      span.log(errorLogs(t));
+  }
+
+  private static HashMap<String,Object> errorLogs(final Throwable t) {
+    final HashMap<String,Object> errorLogs = new HashMap<>(2);
+    errorLogs.put("event", Tags.ERROR.getKey());
+    errorLogs.put("error.object", t);
+    return errorLogs;
+  }
 }

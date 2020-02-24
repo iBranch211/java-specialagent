@@ -15,8 +15,8 @@
 
 package io.opentracing.contrib.specialagent.rule.googlehttpclient;
 
-import io.opentracing.contrib.specialagent.LocalSpanContext;
-import io.opentracing.contrib.specialagent.SpanUtil;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpResponse;
@@ -29,12 +29,18 @@ import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class GoogleHttpClientAgentIntercept {
-  private static final ThreadLocal<LocalSpanContext> contextHolder = new ThreadLocal<>();
+  private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
   static final String COMPONENT_NAME = "google-http-client";
+
+  private static class Context {
+    private Span span;
+    private Scope scope;
+    private int counter = 1;
+  }
 
   public static void enter(final Object thiz) {
     if (contextHolder.get() != null) {
-      contextHolder.get().increment();
+      ++contextHolder.get().counter;
       return;
     }
 
@@ -52,24 +58,27 @@ public class GoogleHttpClientAgentIntercept {
     final Scope scope = tracer.activateSpan(span);
     tracer.inject(span.context(), Builtin.HTTP_HEADERS, new HttpHeadersInjectAdapter(request.getHeaders()));
 
-    final LocalSpanContext context = new LocalSpanContext(span, scope);
+    final Context context = new Context();
     contextHolder.set(context);
+    context.span = span;
+    context.scope = scope;
   }
 
   public static void exit(Throwable thrown, Object returned) {
-    final LocalSpanContext context = contextHolder.get();
+    final Context context = contextHolder.get();
     if (context == null)
       return;
 
-    if (context.decrementAndGet() != 0)
+    if (--context.counter != 0)
       return;
 
     if (thrown != null)
-      SpanUtil.onError(thrown, context.getSpan());
+      onError(thrown, context.span);
     else
-      context.getSpan().setTag(Tags.HTTP_STATUS, ((HttpResponse)returned).getStatusCode());
+      context.span.setTag(Tags.HTTP_STATUS, ((HttpResponse)returned).getStatusCode());
 
-    context.closeAndFinish();
+    context.scope.close();
+    context.span.finish();
     contextHolder.remove();
   }
 
@@ -84,4 +93,16 @@ public class GoogleHttpClientAgentIntercept {
     return 80;
   }
 
+  private static void onError(final Throwable t, final Span span) {
+    Tags.ERROR.set(span, Boolean.TRUE);
+    if (t != null)
+      span.log(errorLogs(t));
+  }
+
+  private static Map<String,Object> errorLogs(final Throwable t) {
+    final Map<String,Object> errorLogs = new HashMap<>(2);
+    errorLogs.put("event", Tags.ERROR.getKey());
+    errorLogs.put("error.object", t);
+    return errorLogs;
+  }
 }

@@ -15,8 +15,8 @@
 
 package io.opentracing.contrib.specialagent.rule.spring.scheduling;
 
-import io.opentracing.contrib.specialagent.LocalSpanContext;
-import io.opentracing.contrib.specialagent.SpanUtil;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.scheduling.support.ScheduledMethodRunnable;
@@ -29,7 +29,12 @@ import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class SpringSchedulingAgentIntercept {
-  private static final ThreadLocal<LocalSpanContext> contextHolder = new ThreadLocal<>();
+  private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
+
+  private static class Context {
+    private Scope scope;
+    private Span span;
+  }
 
   public static void enter(final Object thiz) {
     final ScheduledMethodRunnable runnable = (ScheduledMethodRunnable)thiz;
@@ -42,20 +47,31 @@ public class SpringSchedulingAgentIntercept {
       .start();
 
     final Scope scope = tracer.activateSpan(span);
-    final LocalSpanContext context = new LocalSpanContext(span, scope);
+    final Context context = new Context();
     contextHolder.set(context);
+    context.scope = scope;
+    context.span = span;
   }
 
   public static void exit(final Throwable thrown) {
-    final LocalSpanContext context = contextHolder.get();
+    final Context context = contextHolder.get();
     if (context == null)
       return;
 
     if (thrown != null)
-      SpanUtil.onError(thrown, context.getSpan());
+      captureException(context.span, thrown);
 
-    context.closeAndFinish();
+    context.scope.close();
+    context.span.finish();
     contextHolder.remove();
+  }
+
+  static void captureException(final Span span, final Throwable t) {
+    final Map<String,Object> exceptionLogs = new HashMap<>();
+    exceptionLogs.put("event", Tags.ERROR.getKey());
+    exceptionLogs.put("error.object", t);
+    span.log(exceptionLogs);
+    Tags.ERROR.set(span, true);
   }
 
   public static Object invoke(final Object arg) {

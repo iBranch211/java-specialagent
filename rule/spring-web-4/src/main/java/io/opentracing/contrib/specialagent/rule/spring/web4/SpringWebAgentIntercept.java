@@ -17,7 +17,6 @@ package io.opentracing.contrib.specialagent.rule.spring.web4;
 
 import static io.opentracing.contrib.specialagent.rule.spring.web4.copied.TracingListenableFutureCallback.*;
 
-import io.opentracing.contrib.specialagent.LocalSpanContext;
 import java.net.URI;
 
 import org.springframework.http.HttpMethod;
@@ -38,7 +37,12 @@ import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class SpringWebAgentIntercept {
-  private static final ThreadLocal<LocalSpanContext> contextHolder = new ThreadLocal<>();
+  private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
+
+  private static class Context {
+    private Scope scope;
+    private Span span;
+  }
 
   public static void enter(Object thiz) {
     final RestTemplate restTemplate = (RestTemplate)thiz;
@@ -63,32 +67,35 @@ public class SpringWebAgentIntercept {
       .start();
 
     final Scope scope = tracer.activateSpan(span);
-    final LocalSpanContext context = new LocalSpanContext(span, scope);
+    final Context context = new Context();
     contextHolder.set(context);
+    context.scope = scope;
+    context.span = span;
 
     return WrapperProxy.wrap(requestCallback, new TracingAsyncRequestCallback(requestCallback, span.context()));
   }
 
   public static Object asyncEnd(final Object response, final Throwable thrown) {
-    final LocalSpanContext context = contextHolder.get();
+    final Context context = contextHolder.get();
     if (context == null)
       return response;
 
     if (thrown != null) {
-      captureException(context.getSpan(), thrown);
-      context.closeAndFinish();
+      captureException(context.span, thrown);
+      context.scope.close();
+      context.span.finish();
       contextHolder.remove();
       return response;
     }
 
     final ListenableFuture<?> listenableFuture = (ListenableFuture<?>)response;
     try {
-      listenableFuture.addCallback(new TracingListenableFutureCallback(null, context.getSpan(), true));
+      listenableFuture.addCallback(new TracingListenableFutureCallback(null, context.span, true));
     }
     catch (final Exception ignore) {
     }
 
     contextHolder.remove();
-    return WrapperProxy.wrap(listenableFuture, new TracingListenableFuture(listenableFuture, context.getSpan()));
+    return WrapperProxy.wrap(listenableFuture, new TracingListenableFuture(listenableFuture, context.span));
   }
 }

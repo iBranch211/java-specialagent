@@ -15,8 +15,8 @@
 
 package io.opentracing.contrib.specialagent.rule.spring.websocket;
 
-import io.opentracing.contrib.specialagent.SpanUtil;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.messaging.simp.stomp.StompHeaders;
@@ -64,7 +64,11 @@ public class SpringWebSocketAgentIntercept {
       return;
 
     if (thrown != null) {
-      SpanUtil.onError(thrown, span);
+      Tags.ERROR.set(span, Boolean.TRUE);
+      final HashMap<String,Object> errorLogs = new HashMap<>(2);
+      errorLogs.put("event", Tags.ERROR.getKey());
+      errorLogs.put("error.object", thrown);
+      span.log(errorLogs);
     }
 
     span.finish();
