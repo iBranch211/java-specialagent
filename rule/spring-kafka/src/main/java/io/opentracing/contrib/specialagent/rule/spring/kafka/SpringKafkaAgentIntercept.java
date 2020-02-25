@@ -15,13 +15,13 @@
 
 package io.opentracing.contrib.specialagent.rule.spring.kafka;
 
-import io.opentracing.contrib.specialagent.LocalSpanContext;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import io.opentracing.References;
+import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
@@ -31,12 +31,22 @@ import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class SpringKafkaAgentIntercept {
+  private static class Context {
+    private int counter = 1;
+    private Scope scope;
+    private Span span;
+  }
+
+  private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
 
   public static void onMessageEnter(final Object record) {
-    if (LocalSpanContext.get() != null) {
-      LocalSpanContext.get().increment();
+    if (contextHolder.get() != null) {
+      ++contextHolder.get().counter;
       return;
     }
+
+    final Context context = new Context();
+    contextHolder.set(context);
 
     final Tracer tracer = GlobalTracer.get();
     final SpanBuilder builder = tracer
@@ -52,17 +62,21 @@ public class SpringKafkaAgentIntercept {
     }
 
     final Span span = builder.start();
-    LocalSpanContext.set(span, tracer.activateSpan(span));
+    contextHolder.get().span = span;
+    contextHolder.get().scope = tracer.activateSpan(span);
   }
 
   public static void onMessageExit(Throwable thrown) {
-    final LocalSpanContext context = LocalSpanContext.get();
+    final Context context = contextHolder.get();
     if (context != null) {
-      if (context.decrementAndGet() == 0) {
+      --context.counter;
+      if (context.counter == 0) {
         if (thrown != null) {
-          captureException(context.getSpan(), thrown);
+          captureException(context.span, thrown);
         }
-        context.closeAndFinish();
+        context.scope.close();
+        context.span.finish();
+        contextHolder.remove();
       }
     }
   }

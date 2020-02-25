@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.rule.spring.scheduling;
 
-import io.opentracing.contrib.specialagent.LocalSpanContext;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +29,12 @@ import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class SpringSchedulingAgentIntercept {
+  private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
+
+  private static class Context {
+    private Scope scope;
+    private Span span;
+  }
 
   public static void enter(final Object thiz) {
     final ScheduledMethodRunnable runnable = (ScheduledMethodRunnable)thiz;
@@ -42,18 +47,23 @@ public class SpringSchedulingAgentIntercept {
       .start();
 
     final Scope scope = tracer.activateSpan(span);
-    LocalSpanContext.set(span, scope);
+    final Context context = new Context();
+    contextHolder.set(context);
+    context.scope = scope;
+    context.span = span;
   }
 
   public static void exit(final Throwable thrown) {
-    final LocalSpanContext context = LocalSpanContext.get();
+    final Context context = contextHolder.get();
     if (context == null)
       return;
 
     if (thrown != null)
-      captureException(context.getSpan(), thrown);
+      captureException(context.span, thrown);
 
-    context.closeAndFinish();
+    context.scope.close();
+    context.span.finish();
+    contextHolder.remove();
   }
 
   static void captureException(final Span span, final Throwable t) {

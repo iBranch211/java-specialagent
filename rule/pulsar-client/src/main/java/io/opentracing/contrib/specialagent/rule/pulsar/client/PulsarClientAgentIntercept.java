@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.rule.pulsar.client;
 
-import io.opentracing.contrib.specialagent.LocalSpanContext;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -38,7 +37,14 @@ import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class PulsarClientAgentIntercept {
+  private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
   static final String COMPONENT_NAME = "java-pulsar";
+
+  private static class Context {
+    private Scope scope;
+    private Span span;
+    private int counter = 1;
+  }
 
   private static void buildConsumerSpan(final Consumer<?> consumer, final Message<?> message) {
     final Tracer tracer = GlobalTracer.get();
@@ -72,8 +78,8 @@ public class PulsarClientAgentIntercept {
   }
 
   public static void internalSendAsyncEnter(final Object thiz, final Object arg) {
-    if (LocalSpanContext.get() != null) {
-      LocalSpanContext.get().increment();
+    if (contextHolder.get() != null) {
+      ++contextHolder.get().counter;
       return;
     }
 
@@ -96,20 +102,24 @@ public class PulsarClientAgentIntercept {
 
     final Scope scope = tracer.activateSpan(span);
 
-    LocalSpanContext.set(span, scope);
+    final Context context = new Context();
+    contextHolder.set(context);
+    context.scope = scope;
+    context.span = span;
   }
 
   @SuppressWarnings("unchecked")
   public static Object internalSendAsyncEnd(final Object returned, final Throwable thrown) {
-    final LocalSpanContext context = LocalSpanContext.get();
+    final Context context = contextHolder.get();
     if (context == null)
       return returned;
 
-    if (context.decrementAndGet() != 0)
+    if (--context.counter != 0)
       return returned;
 
-    context.closeScope();
-    final Span span = context.getSpan();
+    context.scope.close();
+    final Span span = context.span;
+    contextHolder.remove();
 
     if (thrown != null) {
       onError(thrown, span);

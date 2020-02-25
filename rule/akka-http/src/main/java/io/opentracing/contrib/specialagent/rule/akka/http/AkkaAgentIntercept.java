@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.rule.akka.http;
 
-import io.opentracing.contrib.specialagent.LocalSpanContext;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -24,6 +23,7 @@ import java.util.concurrent.CompletionStage;
 import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
 import akka.japi.Function;
+import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.opentracing.propagation.Format.Builtin;
@@ -31,12 +31,19 @@ import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class AkkaAgentIntercept {
+  private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
   static final String COMPONENT_NAME_CLIENT = "akka-http-client";
   static final String COMPONENT_NAME_SERVER = "akka-http-server";
 
+  private static class Context {
+    private Span span;
+    private Scope scope;
+    private int counter = 1;
+  }
+
   public static Object requestStart(final Object arg0) {
-    if (LocalSpanContext.get() != null) {
-      LocalSpanContext.get().increment();
+    if (contextHolder.get() != null) {
+      ++contextHolder.get().counter;
       return arg0;
     }
 
@@ -54,22 +61,26 @@ public class AkkaAgentIntercept {
     final HttpHeadersInjectAdapter injectAdapter = new HttpHeadersInjectAdapter(request);
     tracer.inject(span.context(), Builtin.HTTP_HEADERS, injectAdapter);
 
-    LocalSpanContext.set(span, tracer.activateSpan(span));
+    final Context context = new Context();
+    contextHolder.set(context);
+    context.span = span;
+    context.scope = tracer.activateSpan(span);
 
     return injectAdapter.getHttpRequest();
   }
 
   @SuppressWarnings("unchecked")
   public static Object requestEnd(final Object returned, final Throwable thrown) {
-    final LocalSpanContext context = LocalSpanContext.get();
+    final Context context = contextHolder.get();
     if (context == null)
       return returned;
 
-    if (context.decrementAndGet() != 0)
+    if (--context.counter != 0)
       return returned;
 
-    final Span span = context.getSpan();
-    context.closeScope();
+    final Span span = context.span;
+    context.scope.close();
+    contextHolder.remove();
 
     if (thrown != null) {
       onError(thrown, span);
