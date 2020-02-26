@@ -18,11 +18,11 @@ package io.opentracing.contrib.specialagent.rule.play;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.Tracer.SpanBuilder;
+import io.opentracing.contrib.specialagent.LocalSpanContext;
 import io.opentracing.propagation.Format.Builtin;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
@@ -34,18 +34,11 @@ import scala.concurrent.Future;
 import scala.util.Try;
 
 public class PlayAgentIntercept {
-  private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
   static final String COMPONENT_NAME = "play";
 
-  private static class Context {
-    private Span span;
-    private Scope scope;
-    private int counter = 1;
-  }
-
   public static void applyStart(final Object arg0) {
-    if (contextHolder.get() != null) {
-      ++contextHolder.get().counter;
+    if (LocalSpanContext.get() != null) {
+      LocalSpanContext.get().increment();
       return;
     }
 
@@ -61,26 +54,21 @@ public class PlayAgentIntercept {
     if (parent != null)
       spanBuilder.asChildOf(parent);
 
-    final Context context = new Context();
-    contextHolder.set(context);
-
     final Span span = spanBuilder.start();
-    context.span = span;
-    context.scope = tracer.activateSpan(span);
+    LocalSpanContext.set(span, tracer.activateSpan(span));
   }
 
   @SuppressWarnings("unchecked")
   public static void applyEnd(final Object thiz, final Object returned, final Throwable thrown) {
-    final Context context = contextHolder.get();
+    final LocalSpanContext context = LocalSpanContext.get();
     if (context == null)
       return;
 
-    if (--context.counter != 0)
+    if (context.decrementAndGet() != 0)
       return;
 
-    final Span span = context.span;
-    context.scope.close();
-    contextHolder.remove();
+    final Span span = context.getSpan();
+    context.closeScope();
 
     if (thrown != null) {
       onError(thrown, span);

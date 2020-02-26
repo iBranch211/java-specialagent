@@ -23,64 +23,46 @@ import java.util.concurrent.CompletionStage;
 import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
 import akka.japi.Function;
-import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
+import io.opentracing.contrib.specialagent.LocalSpanContext;
 import io.opentracing.propagation.Format.Builtin;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class AkkaAgentIntercept {
-  private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
   static final String COMPONENT_NAME_CLIENT = "akka-http-client";
   static final String COMPONENT_NAME_SERVER = "akka-http-server";
 
-  private static class Context {
-    private Span span;
-    private Scope scope;
-    private int counter = 1;
-  }
-
   public static Object requestStart(final Object arg0) {
-    if (contextHolder.get() != null) {
-      ++contextHolder.get().counter;
+    if (LocalSpanContext.get() != null) {
+      LocalSpanContext.get().increment();
       return arg0;
     }
 
     final HttpRequest request = (HttpRequest)arg0;
     final Tracer tracer = GlobalTracer.get();
-    final Span span = tracer.buildSpan(request.method().value())
-      .withTag(Tags.COMPONENT, COMPONENT_NAME_CLIENT)
-      .withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_CLIENT)
-      .withTag(Tags.HTTP_METHOD, request.method().value())
-      .withTag(Tags.HTTP_URL, request.getUri().toString())
-      .withTag(Tags.PEER_HOSTNAME, request.getUri().host().address())
-      .withTag(Tags.PEER_PORT, request.getUri().port())
-      .start();
+    final Span span = tracer.buildSpan(request.method().value()).withTag(Tags.COMPONENT, COMPONENT_NAME_CLIENT).withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_CLIENT).withTag(Tags.HTTP_METHOD, request.method().value()).withTag(Tags.HTTP_URL, request.getUri().toString()).withTag(Tags.PEER_HOSTNAME, request.getUri().host().address()).withTag(Tags.PEER_PORT, request.getUri().port()).start();
 
     final HttpHeadersInjectAdapter injectAdapter = new HttpHeadersInjectAdapter(request);
     tracer.inject(span.context(), Builtin.HTTP_HEADERS, injectAdapter);
 
-    final Context context = new Context();
-    contextHolder.set(context);
-    context.span = span;
-    context.scope = tracer.activateSpan(span);
+    LocalSpanContext.set(span, tracer.activateSpan(span));
 
     return injectAdapter.getHttpRequest();
   }
 
   @SuppressWarnings("unchecked")
   public static Object requestEnd(final Object returned, final Throwable thrown) {
-    final Context context = contextHolder.get();
+    final LocalSpanContext context = LocalSpanContext.get();
     if (context == null)
       return returned;
 
-    if (--context.counter != 0)
+    if (context.decrementAndGet() != 0)
       return returned;
 
-    final Span span = context.span;
-    context.scope.close();
-    contextHolder.remove();
+    final Span span = context.getSpan();
+    context.closeScope();
 
     if (thrown != null) {
       onError(thrown, span);

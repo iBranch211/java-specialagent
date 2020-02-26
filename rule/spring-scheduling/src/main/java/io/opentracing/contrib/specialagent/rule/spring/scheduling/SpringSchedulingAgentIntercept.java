@@ -25,17 +25,11 @@ import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.common.WrapperProxy;
+import io.opentracing.contrib.specialagent.LocalSpanContext;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class SpringSchedulingAgentIntercept {
-  private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
-
-  private static class Context {
-    private Scope scope;
-    private Span span;
-  }
-
   public static void enter(final Object thiz) {
     final ScheduledMethodRunnable runnable = (ScheduledMethodRunnable)thiz;
     final Tracer tracer = GlobalTracer.get();
@@ -47,23 +41,18 @@ public class SpringSchedulingAgentIntercept {
       .start();
 
     final Scope scope = tracer.activateSpan(span);
-    final Context context = new Context();
-    contextHolder.set(context);
-    context.scope = scope;
-    context.span = span;
+    LocalSpanContext.set(span, scope);
   }
 
   public static void exit(final Throwable thrown) {
-    final Context context = contextHolder.get();
+    final LocalSpanContext context = LocalSpanContext.get();
     if (context == null)
       return;
 
     if (thrown != null)
-      captureException(context.span, thrown);
+      captureException(context.getSpan(), thrown);
 
-    context.scope.close();
-    context.span.finish();
-    contextHolder.remove();
+    context.closeAndFinish();
   }
 
   static void captureException(final Span span, final Throwable t) {

@@ -24,19 +24,13 @@ import org.springframework.http.client.ClientHttpResponse;
 import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
+import io.opentracing.contrib.specialagent.LocalSpanContext;
 import io.opentracing.contrib.specialagent.rule.spring.web3.copied.HttpHeadersCarrier;
 import io.opentracing.propagation.Format.Builtin;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class SpringWebAgentIntercept {
-  private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
-
-  private static class Context {
-    private Scope scope;
-    private Span span;
-  }
-
   public static void enter(final Object thiz) {
     final ClientHttpRequest request = (ClientHttpRequest)thiz;
     final Tracer tracer = GlobalTracer.get();
@@ -51,32 +45,27 @@ public class SpringWebAgentIntercept {
     tracer.inject(span.context(), Builtin.HTTP_HEADERS, new HttpHeadersCarrier(request.getHeaders()));
 
     final Scope scope = tracer.activateSpan(span);
-    final Context context = new Context();
-    contextHolder.set(context);
-    context.scope = scope;
-    context.span = span;
+    LocalSpanContext.set(span, scope);
   }
 
   public static void exit(final Object response, final Throwable thrown) {
-    final Context context = contextHolder.get();
+    final LocalSpanContext context = LocalSpanContext.get();
     if (context == null)
       return;
 
     if (thrown != null) {
-      captureException(context.span, thrown);
+      captureException(context.getSpan(), thrown);
     }
     else {
       try {
         final ClientHttpResponse httpResponse = (ClientHttpResponse)response;
-        Tags.HTTP_STATUS.set(context.span, httpResponse.getStatusCode().value());
+        Tags.HTTP_STATUS.set(context.getSpan(), httpResponse.getStatusCode().value());
       }
       catch (final Exception ignore) {
       }
     }
 
-    context.scope.close();
-    context.span.finish();
-    contextHolder.remove();
+    context.closeAndFinish();
   }
 
   static void captureException(final Span span, final Throwable t) {

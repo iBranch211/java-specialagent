@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.rule.akka.actor;
 
-import io.opentracing.propagation.Format;
 import java.util.HashMap;
 
 import akka.actor.AbstractActor;
@@ -28,30 +27,22 @@ import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.opentracing.Tracer.SpanBuilder;
+import io.opentracing.contrib.specialagent.LocalSpanContext;
+import io.opentracing.propagation.Format;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class AkkaAgentIntercept {
-  private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
   static final String COMPONENT_NAME = "java-akka";
 
-  private static class Context {
-    private Scope scope;
-    private Span span;
-    private int counter = 1;
-  }
-
   public static Object aroundReceiveStart(final Object thiz, final Object message) {
-    if (!(message instanceof TracedMessage) && contextHolder.get() != null) {
-      ++contextHolder.get().counter;
+    if (!(message instanceof TracedMessage) && LocalSpanContext.get() != null) {
+      LocalSpanContext.get().increment();
       return message;
     }
 
     final Tracer tracer = GlobalTracer.get();
-    final SpanBuilder spanBuilder = tracer
-      .buildSpan("receive")
-      .withTag(Tags.COMPONENT, COMPONENT_NAME)
-      .withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_CONSUMER);
+    final SpanBuilder spanBuilder = tracer.buildSpan("receive").withTag(Tags.COMPONENT, COMPONENT_NAME).withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_CONSUMER);
 
     final TracedMessage<?> tracedMessage;
     if (message instanceof TracedMessage) {
@@ -67,28 +58,23 @@ public class AkkaAgentIntercept {
     final Span span = spanBuilder.start();
     final Scope scope = tracer.activateSpan(span);
 
-    final Context context = new Context();
-    contextHolder.set(context);
-    context.scope = scope;
-    context.span = span;
+    LocalSpanContext.set(span, scope);
 
     return tracedMessage != null ? tracedMessage.getMessage() : message;
   }
 
   public static void aroundReceiveEnd(final Throwable thrown) {
-    final Context context = contextHolder.get();
+    final LocalSpanContext context = LocalSpanContext.get();
     if (context == null)
       return;
 
-    if (--context.counter != 0)
+    if (context.decrementAndGet() != 0)
       return;
 
     if (thrown != null)
-      onError(thrown, context.span);
+      onError(thrown, context.getSpan());
 
-    context.scope.close();
-    context.span.finish();
-    contextHolder.remove();
+    context.closeAndFinish();
   }
 
   public static Object askStart(final Object arg0, final Object message, final String method, final Object sender) {
@@ -116,21 +102,14 @@ public class AkkaAgentIntercept {
       return message;
 
     final Tracer tracer = GlobalTracer.get();
-    final Span span = tracer
-      .buildSpan(method)
-      .withTag(Tags.COMPONENT, COMPONENT_NAME)
-      .withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_PRODUCER)
-      .withTag(Tags.MESSAGE_BUS_DESTINATION, path).start();
+    final Span span = tracer.buildSpan(method).withTag(Tags.COMPONENT, COMPONENT_NAME).withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_PRODUCER).withTag(Tags.MESSAGE_BUS_DESTINATION, path).start();
 
     final HashMap<String,String> headers = new HashMap<>();
     tracer.inject(span.context(), Format.Builtin.TEXT_MAP_INJECT, headers::put);
 
     final Scope scope = tracer.activateSpan(span);
 
-    final Context context = new Context();
-    contextHolder.set(context);
-    context.scope = scope;
-    context.span = span;
+    LocalSpanContext.set(span, scope);
 
     return new TracedMessage<>(message, headers);
   }
@@ -139,16 +118,14 @@ public class AkkaAgentIntercept {
     if (sender instanceof PromiseActorRef || arg0 instanceof PromiseActorRef || !(message instanceof TracedMessage))
       return;
 
-    final Context context = contextHolder.get();
+    final LocalSpanContext context = LocalSpanContext.get();
     if (context == null)
       return;
 
     if (thrown != null)
-      onError(thrown, context.span);
+      onError(thrown, context.getSpan());
 
-    context.scope.close();
-    context.span.finish();
-    contextHolder.remove();
+    context.closeAndFinish();
   }
 
   private static void onError(final Throwable t, final Span span) {
