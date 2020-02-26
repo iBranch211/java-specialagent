@@ -15,15 +15,13 @@
 
 package io.opentracing.contrib.specialagent.rule.spring.web3;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 
 import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
+import io.opentracing.contrib.specialagent.AgentRuleUtil;
 import io.opentracing.contrib.specialagent.LocalSpanContext;
 import io.opentracing.contrib.specialagent.rule.spring.web3.copied.HttpHeadersCarrier;
 import io.opentracing.propagation.Format.Builtin;
@@ -54,7 +52,7 @@ public class SpringWebAgentIntercept {
       return;
 
     if (thrown != null) {
-      captureException(context.getSpan(), thrown);
+      AgentRuleUtil.setErrorTag(context.getSpan(), thrown);
     }
     else {
       try {
@@ -66,13 +64,5 @@ public class SpringWebAgentIntercept {
     }
 
     context.closeAndFinish();
-  }
-
-  static void captureException(final Span span, final Throwable t) {
-    final Map<String,Object> exceptionLogs = new HashMap<>();
-    exceptionLogs.put("event", Tags.ERROR.getKey());
-    exceptionLogs.put("error.object", t);
-    span.log(exceptionLogs);
-    Tags.ERROR.set(span, true);
   }
 }

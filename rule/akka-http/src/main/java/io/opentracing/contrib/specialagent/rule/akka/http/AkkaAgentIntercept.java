@@ -15,8 +15,6 @@
 
 package io.opentracing.contrib.specialagent.rule.akka.http;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -25,6 +23,7 @@ import akka.http.javadsl.model.HttpResponse;
 import akka.japi.Function;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
+import io.opentracing.contrib.specialagent.AgentRuleUtil;
 import io.opentracing.contrib.specialagent.LocalSpanContext;
 import io.opentracing.propagation.Format.Builtin;
 import io.opentracing.tag.Tags;
@@ -42,7 +41,15 @@ public class AkkaAgentIntercept {
 
     final HttpRequest request = (HttpRequest)arg0;
     final Tracer tracer = GlobalTracer.get();
-    final Span span = tracer.buildSpan(request.method().value()).withTag(Tags.COMPONENT, COMPONENT_NAME_CLIENT).withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_CLIENT).withTag(Tags.HTTP_METHOD, request.method().value()).withTag(Tags.HTTP_URL, request.getUri().toString()).withTag(Tags.PEER_HOSTNAME, request.getUri().host().address()).withTag(Tags.PEER_PORT, request.getUri().port()).start();
+    final Span span = tracer
+      .buildSpan(request.method().value())
+      .withTag(Tags.COMPONENT, COMPONENT_NAME_CLIENT)
+      .withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_CLIENT)
+      .withTag(Tags.HTTP_METHOD, request.method().value())
+      .withTag(Tags.HTTP_URL, request.getUri().toString())
+      .withTag(Tags.PEER_HOSTNAME, request.getUri().host().address())
+      .withTag(Tags.PEER_PORT, request.getUri().port())
+      .start();
 
     final HttpHeadersInjectAdapter injectAdapter = new HttpHeadersInjectAdapter(request);
     tracer.inject(span.context(), Builtin.HTTP_HEADERS, injectAdapter);
@@ -55,17 +62,14 @@ public class AkkaAgentIntercept {
   @SuppressWarnings("unchecked")
   public static Object requestEnd(final Object returned, final Throwable thrown) {
     final LocalSpanContext context = LocalSpanContext.get();
-    if (context == null)
-      return returned;
-
-    if (context.decrementAndGet() != 0)
+    if (context == null || context.decrementAndGet() != 0)
       return returned;
 
     final Span span = context.getSpan();
     context.closeScope();
 
     if (thrown != null) {
-      onError(thrown, span);
+      AgentRuleUtil.setErrorTag(span, thrown);
       span.finish();
       return returned;
     }
@@ -75,7 +79,7 @@ public class AkkaAgentIntercept {
       span.finish();
       return httpResponse;
     }).exceptionally(throwable -> {
-      onError(throwable, span);
+      AgentRuleUtil.setErrorTag(span, throwable);
       span.finish();
       return null;
     });
@@ -89,18 +93,5 @@ public class AkkaAgentIntercept {
   @SuppressWarnings("unchecked")
   public static Object bindAndHandleAsync(final Object handler) {
     return new AkkaHttpAsyncHandler((Function<HttpRequest,CompletableFuture<HttpResponse>>)handler);
-  }
-
-  static void onError(final Throwable t, final Span span) {
-    Tags.ERROR.set(span, Boolean.TRUE);
-    if (t != null)
-      span.log(errorLogs(t));
-  }
-
-  private static Map<String,Object> errorLogs(final Throwable t) {
-    final Map<String,Object> errorLogs = new HashMap<>(2);
-    errorLogs.put("event", Tags.ERROR.getKey());
-    errorLogs.put("error.object", t);
-    return errorLogs;
   }
 }

@@ -15,7 +15,6 @@
 
 package io.opentracing.contrib.specialagent.rule.spring.rabbitmq;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.amqp.core.Message;
@@ -25,6 +24,7 @@ import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.Tracer.SpanBuilder;
+import io.opentracing.contrib.specialagent.AgentRuleUtil;
 import io.opentracing.contrib.specialagent.LocalSpanContext;
 import io.opentracing.propagation.Format.Builtin;
 import io.opentracing.tag.Tags;
@@ -57,23 +57,12 @@ public class SpringRabbitMQAgentIntercept {
 
   public static void onMessageExit(final Throwable thrown) {
     final LocalSpanContext context = LocalSpanContext.get();
-    if (context == null)
-      return;
-
-    if (context.decrementAndGet() != 0)
+    if (context == null || context.decrementAndGet() != 0)
       return;
 
     if (thrown != null)
-      captureException(context.getSpan(), thrown);
+      AgentRuleUtil.setErrorTag(context.getSpan(), thrown);
 
     context.closeAndFinish();
-  }
-
-  private static void captureException(final Span span, final Throwable t) {
-    final Map<String,Object> exceptionLogs = new HashMap<>();
-    exceptionLogs.put("event", Tags.ERROR.getKey());
-    exceptionLogs.put("error.object", t);
-    span.log(exceptionLogs);
-    Tags.ERROR.set(span, true);
   }
 }

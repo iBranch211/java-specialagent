@@ -27,6 +27,7 @@ import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.opentracing.Tracer.SpanBuilder;
+import io.opentracing.contrib.specialagent.AgentRuleUtil;
 import io.opentracing.contrib.specialagent.LocalSpanContext;
 import io.opentracing.propagation.Format;
 import io.opentracing.tag.Tags;
@@ -42,7 +43,10 @@ public class AkkaAgentIntercept {
     }
 
     final Tracer tracer = GlobalTracer.get();
-    final SpanBuilder spanBuilder = tracer.buildSpan("receive").withTag(Tags.COMPONENT, COMPONENT_NAME).withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_CONSUMER);
+    final SpanBuilder spanBuilder = tracer
+      .buildSpan("receive")
+      .withTag(Tags.COMPONENT, COMPONENT_NAME)
+      .withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_CONSUMER);
 
     final TracedMessage<?> tracedMessage;
     if (message instanceof TracedMessage) {
@@ -65,18 +69,16 @@ public class AkkaAgentIntercept {
 
   public static void aroundReceiveEnd(final Throwable thrown) {
     final LocalSpanContext context = LocalSpanContext.get();
-    if (context == null)
-      return;
-
-    if (context.decrementAndGet() != 0)
+    if (context == null || context.decrementAndGet() != 0)
       return;
 
     if (thrown != null)
-      onError(thrown, context.getSpan());
+      AgentRuleUtil.setErrorTag(context.getSpan(), thrown);
 
     context.closeAndFinish();
   }
 
+  @SuppressWarnings("deprecation")
   public static Object askStart(final Object arg0, final Object message, final String method, final Object sender) {
     if (arg0 instanceof DeadLetterActorRef)
       return message;
@@ -102,13 +104,17 @@ public class AkkaAgentIntercept {
       return message;
 
     final Tracer tracer = GlobalTracer.get();
-    final Span span = tracer.buildSpan(method).withTag(Tags.COMPONENT, COMPONENT_NAME).withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_PRODUCER).withTag(Tags.MESSAGE_BUS_DESTINATION, path).start();
+    final Span span = tracer
+      .buildSpan(method)
+      .withTag(Tags.COMPONENT, COMPONENT_NAME)
+      .withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_PRODUCER)
+      .withTag(Tags.MESSAGE_BUS_DESTINATION, path)
+      .start();
 
     final HashMap<String,String> headers = new HashMap<>();
     tracer.inject(span.context(), Format.Builtin.TEXT_MAP_INJECT, headers::put);
 
     final Scope scope = tracer.activateSpan(span);
-
     LocalSpanContext.set(span, scope);
 
     return new TracedMessage<>(message, headers);
@@ -123,21 +129,8 @@ public class AkkaAgentIntercept {
       return;
 
     if (thrown != null)
-      onError(thrown, context.getSpan());
+      AgentRuleUtil.setErrorTag(context.getSpan(), thrown);
 
     context.closeAndFinish();
-  }
-
-  private static void onError(final Throwable t, final Span span) {
-    Tags.ERROR.set(span, Boolean.TRUE);
-    if (t != null)
-      span.log(errorLogs(t));
-  }
-
-  private static HashMap<String,Object> errorLogs(final Throwable t) {
-    final HashMap<String,Object> errorLogs = new HashMap<>(2);
-    errorLogs.put("event", Tags.ERROR.getKey());
-    errorLogs.put("error.object", t);
-    return errorLogs;
   }
 }

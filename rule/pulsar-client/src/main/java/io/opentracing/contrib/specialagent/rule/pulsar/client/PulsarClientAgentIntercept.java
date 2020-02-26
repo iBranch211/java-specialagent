@@ -15,8 +15,6 @@
 
 package io.opentracing.contrib.specialagent.rule.pulsar.client;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.pulsar.client.api.Consumer;
@@ -31,6 +29,7 @@ import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.Tracer.SpanBuilder;
+import io.opentracing.contrib.specialagent.AgentRuleUtil;
 import io.opentracing.contrib.specialagent.LocalSpanContext;
 import io.opentracing.propagation.Format.Builtin;
 import io.opentracing.propagation.TextMapAdapter;
@@ -110,7 +109,7 @@ public class PulsarClientAgentIntercept {
     final Span span = context.getSpan();
 
     if (thrown != null) {
-      onError(thrown, span);
+      AgentRuleUtil.setErrorTag(span, thrown);
       span.finish();
       return returned;
     }
@@ -119,22 +118,9 @@ public class PulsarClientAgentIntercept {
       span.finish();
       return messageId;
     }).exceptionally(throwable -> {
-      onError(throwable, span);
+      AgentRuleUtil.setErrorTag(span, throwable);
       span.finish();
       return null;
     });
-  }
-
-  private static void onError(final Throwable t, final Span span) {
-    Tags.ERROR.set(span, Boolean.TRUE);
-    if (t != null)
-      span.log(errorLogs(t));
-  }
-
-  private static Map<String,Object> errorLogs(final Throwable t) {
-    final Map<String,Object> errorLogs = new HashMap<>(2);
-    errorLogs.put("event", Tags.ERROR.getKey());
-    errorLogs.put("error.object", t);
-    return errorLogs;
   }
 }
