@@ -15,6 +15,8 @@
 
 package io.opentracing.contrib.specialagent.rule.spring.web40;
 
+import static io.opentracing.contrib.specialagent.rule.spring.web40.copied.TracingListenableFutureCallback.*;
+
 import java.net.URI;
 
 import org.springframework.http.HttpMethod;
@@ -27,8 +29,6 @@ import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.common.WrapperProxy;
-import io.opentracing.contrib.specialagent.AgentRuleUtil;
-import io.opentracing.contrib.specialagent.LocalSpanContext;
 import io.opentracing.contrib.specialagent.rule.spring.web40.copied.TracingAsyncRequestCallback;
 import io.opentracing.contrib.specialagent.rule.spring.web40.copied.TracingListenableFuture;
 import io.opentracing.contrib.specialagent.rule.spring.web40.copied.TracingListenableFutureCallback;
@@ -37,6 +37,13 @@ import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class SpringWebAgentIntercept {
+  private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
+
+  private static class Context {
+    private Scope scope;
+    private Span span;
+  }
+
   public static void enter(final Object thiz) {
     final RestTemplate restTemplate = (RestTemplate)thiz;
     for (final ClientHttpRequestInterceptor interceptor : restTemplate.getInterceptors())
@@ -60,30 +67,35 @@ public class SpringWebAgentIntercept {
       .withTag(Tags.HTTP_METHOD, method.name()).start();
 
     final Scope scope = tracer.activateSpan(span);
-    LocalSpanContext.set(span, scope);
+    final Context context = new Context();
+    contextHolder.set(context);
+    context.scope = scope;
+    context.span = span;
 
     return WrapperProxy.wrap(requestCallback, new TracingAsyncRequestCallback(requestCallback, span.context()));
   }
 
   public static Object asyncEnd(final Object response, final Throwable thrown) {
-    final LocalSpanContext context = LocalSpanContext.get();
+    final Context context = contextHolder.get();
     if (context == null)
       return response;
 
     if (thrown != null) {
-      AgentRuleUtil.setErrorTag(context.getSpan(), thrown);
-      context.closeAndFinish();
+      captureException(context.span, thrown);
+      context.scope.close();
+      context.span.finish();
+      contextHolder.remove();
       return response;
     }
 
     final ListenableFuture<?> listenableFuture = (ListenableFuture<?>)response;
     try {
-      listenableFuture.addCallback(new TracingListenableFutureCallback(null, context.getSpan(), true));
+      listenableFuture.addCallback(new TracingListenableFutureCallback(null, context.span, true));
     }
     catch (final Exception ignore) {
     }
 
-    LocalSpanContext.remove();
-    return WrapperProxy.wrap(listenableFuture, new TracingListenableFuture(listenableFuture, context.getSpan()));
+    contextHolder.remove();
+    return WrapperProxy.wrap(listenableFuture, new TracingListenableFuture(listenableFuture, context.span));
   }
 }

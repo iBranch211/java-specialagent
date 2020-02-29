@@ -15,12 +15,14 @@
 
 package io.opentracing.contrib.specialagent.rule.zuul;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
 
 import io.opentracing.Scope;
 import io.opentracing.Span;
-import io.opentracing.contrib.specialagent.AgentRuleUtil;
 import io.opentracing.tag.Tags;
 
 public class TracePostZuulFilter extends ZuulFilter {
@@ -47,7 +49,7 @@ public class TracePostZuulFilter extends ZuulFilter {
     final RequestContext context = RequestContext.getCurrentContext();
     final Object spanObject = context.get(TracePreZuulFilter.CONTEXT_SPAN_KEY);
     if (spanObject instanceof Span) {
-      final Span span = (Span)spanObject;
+      final Span span = (Span) spanObject;
       span.setTag(Tags.HTTP_STATUS.getKey(), context.getResponseStatusCode());
       if (context.getThrowable() != null) {
         onError(context.getThrowable(), span);
@@ -73,6 +75,15 @@ public class TracePostZuulFilter extends ZuulFilter {
   }
 
   private static void onError(final Throwable t, final Span span) {
-    AgentRuleUtil.setErrorTag(span, t);
+    Tags.ERROR.set(span, Boolean.TRUE);
+    if (t != null)
+      span.log(errorLogs(t));
+  }
+
+  private static Map<String,Object> errorLogs(final Throwable t) {
+    final Map<String,Object> errorLogs = new HashMap<>(2);
+    errorLogs.put("event", Tags.ERROR.getKey());
+    errorLogs.put("error.object", t);
+    return errorLogs;
   }
 }

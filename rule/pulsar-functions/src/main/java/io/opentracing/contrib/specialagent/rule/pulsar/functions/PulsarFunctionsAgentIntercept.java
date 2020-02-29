@@ -15,7 +15,8 @@
 
 package io.opentracing.contrib.specialagent.rule.pulsar.functions;
 
-import org.apache.pulsar.functions.api.Context;
+import java.util.HashMap;
+
 import org.apache.pulsar.functions.api.Record;
 import org.apache.pulsar.functions.instance.JavaExecutionResult;
 
@@ -25,14 +26,18 @@ import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.Tracer.SpanBuilder;
-import io.opentracing.contrib.specialagent.AgentRuleUtil;
-import io.opentracing.contrib.specialagent.LocalSpanContext;
 import io.opentracing.propagation.Format.Builtin;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class PulsarFunctionsAgentIntercept {
+  private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
   static final String COMPONENT_NAME = "java-pulsar-functions";
+
+  private static class Context {
+    private Scope scope;
+    private Span span;
+  }
 
   public static void handleMessageEnter(final Object function, final Object contextArg, final Object arg0) {
     final Tracer tracer = GlobalTracer.get();
@@ -51,12 +56,15 @@ public class PulsarFunctionsAgentIntercept {
     final Span span = spanBuilder.start();
     final Scope scope = tracer.activateSpan(span);
 
-    LocalSpanContext.set(span, scope);
+    final Context context = new Context();
+    contextHolder.set(context);
+    context.scope = scope;
+    context.span = span;
   }
 
   private static String getFunctionName(final Object function, final Object contextArg) {
     if (contextArg != null) {
-      final Context contextImpl = (Context)contextArg;
+      final org.apache.pulsar.functions.api.Context contextImpl = (org.apache.pulsar.functions.api.Context)contextArg;
       if (contextImpl.getFunctionName() != null)
         return contextImpl.getFunctionName();
     }
@@ -69,25 +77,39 @@ public class PulsarFunctionsAgentIntercept {
   }
 
   public static void handleMessageEnd(final Object returned, final Throwable thrown) {
-    final LocalSpanContext context = LocalSpanContext.get();
+    final Context context = contextHolder.get();
     if (context == null)
       return;
 
-    context.closeScope();
-    final Span span = context.getSpan();
+    context.scope.close();
+    final Span span = context.span;
+    contextHolder.remove();
 
     if (thrown != null) {
-      AgentRuleUtil.setErrorTag(span, thrown);
+      onError(thrown, span);
       span.finish();
       return;
     }
 
-    final JavaExecutionResult result = (JavaExecutionResult) returned;
+    final JavaExecutionResult result = (JavaExecutionResult)returned;
     if (result.getSystemException() != null)
-      AgentRuleUtil.setErrorTag(span, result.getSystemException());
+      onError(result.getSystemException(), span);
     else if (result.getUserException() != null)
-      AgentRuleUtil.setErrorTag(span, result.getUserException());
+      onError(result.getUserException(), span);
 
     span.finish();
+  }
+
+  private static void onError(final Throwable t, final Span span) {
+    Tags.ERROR.set(span, Boolean.TRUE);
+    if (t != null)
+      span.log(errorLogs(t));
+  }
+
+  private static HashMap<String,Object> errorLogs(final Throwable t) {
+    final HashMap<String,Object> errorLogs = new HashMap<>(2);
+    errorLogs.put("event", Tags.ERROR.getKey());
+    errorLogs.put("error.object", t);
+    return errorLogs;
   }
 }

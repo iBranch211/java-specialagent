@@ -15,6 +15,8 @@
 
 package io.opentracing.contrib.specialagent.rule.pulsar.client;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.pulsar.client.api.Consumer;
@@ -29,15 +31,20 @@ import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.Tracer.SpanBuilder;
-import io.opentracing.contrib.specialagent.AgentRuleUtil;
-import io.opentracing.contrib.specialagent.LocalSpanContext;
 import io.opentracing.propagation.Format.Builtin;
 import io.opentracing.propagation.TextMapAdapter;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class PulsarClientAgentIntercept {
+  private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
   static final String COMPONENT_NAME = "java-pulsar";
+
+  private static class Context {
+    private Scope scope;
+    private Span span;
+    private int counter = 1;
+  }
 
   private static void buildConsumerSpan(final Consumer<?> consumer, final Message<?> message) {
     final Tracer tracer = GlobalTracer.get();
@@ -71,8 +78,8 @@ public class PulsarClientAgentIntercept {
   }
 
   public static void internalSendAsyncEnter(final Object thiz, final Object arg) {
-    if (LocalSpanContext.get() != null) {
-      LocalSpanContext.get().increment();
+    if (contextHolder.get() != null) {
+      ++contextHolder.get().counter;
       return;
     }
 
@@ -80,6 +87,7 @@ public class PulsarClientAgentIntercept {
     final Producer<?> producer = (Producer<?>)thiz;
 
     final Tracer tracer = GlobalTracer.get();
+
     final Span span = tracer
       .buildSpan("send")
       .withTag(Tags.COMPONENT, COMPONENT_NAME)
@@ -93,23 +101,28 @@ public class PulsarClientAgentIntercept {
     tracer.inject(span.context(), Builtin.TEXT_MAP, new PropertiesMapInjectAdapter(message.getMessageBuilder()));
 
     final Scope scope = tracer.activateSpan(span);
-    LocalSpanContext.set(span, scope);
+
+    final Context context = new Context();
+    contextHolder.set(context);
+    context.scope = scope;
+    context.span = span;
   }
 
   @SuppressWarnings("unchecked")
   public static Object internalSendAsyncEnd(final Object returned, final Throwable thrown) {
-    final LocalSpanContext context = LocalSpanContext.get();
+    final Context context = contextHolder.get();
     if (context == null)
       return returned;
 
-    if (context.decrementAndGet() != 0)
+    if (--context.counter != 0)
       return returned;
 
-    context.closeScope();
-    final Span span = context.getSpan();
+    context.scope.close();
+    final Span span = context.span;
+    contextHolder.remove();
 
     if (thrown != null) {
-      AgentRuleUtil.setErrorTag(span, thrown);
+      onError(thrown, span);
       span.finish();
       return returned;
     }
@@ -118,9 +131,22 @@ public class PulsarClientAgentIntercept {
       span.finish();
       return messageId;
     }).exceptionally(throwable -> {
-      AgentRuleUtil.setErrorTag(span, throwable);
+      onError(throwable, span);
       span.finish();
       return null;
     });
+  }
+
+  private static void onError(final Throwable t, final Span span) {
+    Tags.ERROR.set(span, Boolean.TRUE);
+    if (t != null)
+      span.log(errorLogs(t));
+  }
+
+  private static Map<String,Object> errorLogs(final Throwable t) {
+    final Map<String,Object> errorLogs = new HashMap<>(2);
+    errorLogs.put("event", Tags.ERROR.getKey());
+    errorLogs.put("error.object", t);
+    return errorLogs;
   }
 }
