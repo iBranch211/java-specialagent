@@ -15,12 +15,14 @@
 
 package io.opentracing.contrib.specialagent.rule.play;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.Tracer.SpanBuilder;
-import io.opentracing.contrib.specialagent.AgentRuleUtil;
-import io.opentracing.contrib.specialagent.LocalSpanContext;
 import io.opentracing.propagation.Format.Builtin;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
@@ -32,11 +34,18 @@ import scala.concurrent.Future;
 import scala.util.Try;
 
 public class PlayAgentIntercept {
+  private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
   static final String COMPONENT_NAME = "play";
 
+  private static class Context {
+    private Span span;
+    private Scope scope;
+    private int counter = 1;
+  }
+
   public static void applyStart(final Object arg0) {
-    if (LocalSpanContext.get() != null) {
-      LocalSpanContext.get().increment();
+    if (contextHolder.get() != null) {
+      ++contextHolder.get().counter;
       return;
     }
 
@@ -52,24 +61,29 @@ public class PlayAgentIntercept {
     if (parent != null)
       spanBuilder.asChildOf(parent);
 
+    final Context context = new Context();
+    contextHolder.set(context);
+
     final Span span = spanBuilder.start();
-    LocalSpanContext.set(span, tracer.activateSpan(span));
+    context.span = span;
+    context.scope = tracer.activateSpan(span);
   }
 
   @SuppressWarnings("unchecked")
   public static void applyEnd(final Object thiz, final Object returned, final Throwable thrown) {
-    final LocalSpanContext context = LocalSpanContext.get();
+    final Context context = contextHolder.get();
     if (context == null)
       return;
 
-    if (context.decrementAndGet() != 0)
+    if (--context.counter != 0)
       return;
 
-    final Span span = context.getSpan();
-    context.closeScope();
+    final Span span = context.span;
+    context.scope.close();
+    contextHolder.remove();
 
     if (thrown != null) {
-      AgentRuleUtil.setErrorTag(span, thrown);
+      onError(thrown, span);
       span.finish();
       return;
     }
@@ -78,7 +92,7 @@ public class PlayAgentIntercept {
       @Override
       public Object apply(final Try<Result> response) {
         if (response.isFailure()) {
-          AgentRuleUtil.setErrorTag(span, response.failed().get());
+          onError(response.failed().get(), span);
         }
         else {
           span.setTag(Tags.HTTP_STATUS, response.get().header().status());
@@ -88,5 +102,18 @@ public class PlayAgentIntercept {
         return null;
       }
     }, ((Action<?>)thiz).executionContext());
+  }
+
+  static void onError(final Throwable t, final Span span) {
+    Tags.ERROR.set(span, Boolean.TRUE);
+    if (t != null)
+      span.log(errorLogs(t));
+  }
+
+  private static Map<String,Object> errorLogs(final Throwable t) {
+    final Map<String,Object> errorLogs = new HashMap<>(2);
+    errorLogs.put("event", Tags.ERROR.getKey());
+    errorLogs.put("error.object", t);
+    return errorLogs;
   }
 }

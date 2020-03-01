@@ -15,27 +15,37 @@
 
 package io.opentracing.contrib.specialagent.rule.spring.rabbitmq;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.amqp.core.Message;
 
 import io.opentracing.References;
+import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.Tracer.SpanBuilder;
-import io.opentracing.contrib.specialagent.AgentRuleUtil;
-import io.opentracing.contrib.specialagent.LocalSpanContext;
 import io.opentracing.propagation.Format.Builtin;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class SpringRabbitMQAgentIntercept {
+  private static class Context {
+    private int counter = 1;
+    private Scope scope;
+    private Span span;
+  }
+
+  private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
+
   public static void onMessageEnter(final Object msg) {
-    if (LocalSpanContext.get() != null) {
-      LocalSpanContext.get().increment();
+    if (contextHolder.get() != null) {
+      ++contextHolder.get().counter;
       return;
     }
+
+    contextHolder.set(new Context());
 
     final Tracer tracer = GlobalTracer.get();
     final SpanBuilder builder = tracer
@@ -52,17 +62,32 @@ public class SpringRabbitMQAgentIntercept {
     }
 
     final Span span = builder.start();
-    LocalSpanContext.set(span, tracer.activateSpan(span));
+    contextHolder.get().span = span;
+    contextHolder.get().scope = tracer.activateSpan(span);
   }
 
-  public static void onMessageExit(final Throwable thrown) {
-    final LocalSpanContext context = LocalSpanContext.get();
-    if (context == null || context.decrementAndGet() != 0)
+  public static void onMessageExit(Throwable thrown) {
+    final Context context = contextHolder.get();
+    if (context == null)
+      return;
+
+    --context.counter;
+    if (context.counter != 0)
       return;
 
     if (thrown != null)
-      AgentRuleUtil.setErrorTag(context.getSpan(), thrown);
+      captureException(context.span, thrown);
 
-    context.closeAndFinish();
+    context.scope.close();
+    context.span.finish();
+    contextHolder.remove();
+  }
+
+  private static void captureException(final Span span, final Throwable t) {
+    final Map<String,Object> exceptionLogs = new HashMap<>();
+    exceptionLogs.put("event", Tags.ERROR.getKey());
+    exceptionLogs.put("error.object", t);
+    span.log(exceptionLogs);
+    Tags.ERROR.set(span, true);
   }
 }

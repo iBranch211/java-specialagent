@@ -14,6 +14,7 @@
  */
 package io.opentracing.contrib.specialagent.rule.akka.http;
 
+import static io.opentracing.contrib.specialagent.rule.akka.http.AkkaAgentIntercept.*;
 import static io.opentracing.contrib.specialagent.rule.akka.http.AkkaHttpSyncHandler.*;
 
 import java.util.concurrent.CompletableFuture;
@@ -23,7 +24,6 @@ import akka.http.javadsl.model.HttpResponse;
 import akka.japi.Function;
 import io.opentracing.Scope;
 import io.opentracing.Span;
-import io.opentracing.contrib.specialagent.AgentRuleUtil;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
@@ -43,7 +43,7 @@ public class AkkaHttpAsyncHandler implements Function<HttpRequest,CompletableFut
         span.finish();
         return httpResponse;
       }).exceptionally(throwable -> {
-        AgentRuleUtil.setErrorTag(span, throwable);
+        onError(throwable, span);
         span.finish();
         return null;
       });

@@ -17,6 +17,9 @@ package io.opentracing.contrib.specialagent.rule.rabbitmq.client;
 
 import static io.opentracing.contrib.rabbitmq.TracingUtils.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.GetResponse;
@@ -27,28 +30,32 @@ import io.opentracing.Tracer;
 import io.opentracing.contrib.common.WrapperProxy;
 import io.opentracing.contrib.rabbitmq.TracingConsumer;
 import io.opentracing.contrib.rabbitmq.TracingUtils;
-import io.opentracing.contrib.specialagent.AgentRuleUtil;
-import io.opentracing.contrib.specialagent.LocalSpanContext;
+import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class RabbitMQAgentIntercept {
+  private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
+
+  private static class Context {
+    private final Scope scope;
+    private final Span span;
+
+    private Context(final Scope scope, final Span span) {
+      this.scope = scope;
+      this.span = span;
+    }
+  }
+
   public static void exitGet(final Object response, final Object queue, final Throwable thrown) {
     final Span span = TracingUtils.buildChildSpan(((GetResponse)response).getProps(), (String)queue, GlobalTracer.get());
     if (thrown != null)
-      AgentRuleUtil.setErrorTag(span, thrown);
+      captureException(span, thrown);
 
     span.finish();
   }
 
-  public static void finish(final Throwable thrown) {
-    final LocalSpanContext context = LocalSpanContext.get();
-    if (context == null)
-      return;
-
-    if (thrown != null)
-      AgentRuleUtil.setErrorTag(context.getSpan(), thrown);
-
-    context.closeAndFinish();
+  public static void exitPublish(final Throwable thrown) {
+    finish(thrown);
   }
 
   public static AMQP.BasicProperties enterPublish(final Object exchange, final Object routingKey, final Object props) {
@@ -57,12 +64,33 @@ public class RabbitMQAgentIntercept {
     final Span span = TracingUtils.buildSpan((String)exchange, (String)routingKey, properties, tracer);
 
     final Scope scope = tracer.activateSpan(span);
-    LocalSpanContext.set(span, scope);
+    contextHolder.set(new Context(scope, span));
 
     return inject(properties, span, tracer);
   }
 
   public static Object enterConsume(final Object callback, final Object queue) {
     return WrapperProxy.wrap(callback, new TracingConsumer((Consumer)callback, (String)queue, GlobalTracer.get()));
+  }
+
+  private static void finish(final Throwable thrown) {
+    final Context context = contextHolder.get();
+    if (context == null)
+      return;
+
+    if (thrown != null)
+      captureException(context.span, thrown);
+
+    context.scope.close();
+    context.span.finish();
+    contextHolder.remove();
+  }
+
+  private static void captureException(final Span span, final Throwable thrown) {
+    final Map<String,Object> exceptionLogs = new HashMap<>();
+    exceptionLogs.put("event", Tags.ERROR.getKey());
+    exceptionLogs.put("error.object", thrown);
+    span.log(exceptionLogs);
+    Tags.ERROR.set(span, true);
   }
 }

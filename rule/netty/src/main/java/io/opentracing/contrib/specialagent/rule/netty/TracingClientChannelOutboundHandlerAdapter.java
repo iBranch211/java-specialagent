@@ -24,7 +24,6 @@ import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.Tracer.SpanBuilder;
-import io.opentracing.contrib.specialagent.AgentRuleUtil;
 import io.opentracing.propagation.Format.Builtin;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
@@ -65,7 +64,7 @@ public class TracingClientChannelOutboundHandlerAdapter extends ChannelOutboundH
         context.write(message, promise);
       }
       catch (final Throwable t) {
-        AgentRuleUtil.setErrorTag(span, t);
+        TracingServerChannelInboundHandlerAdapter.onError(t, span);
         span.finish();
         throw t;
       }

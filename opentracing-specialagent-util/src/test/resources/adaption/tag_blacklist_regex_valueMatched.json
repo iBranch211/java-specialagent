@@ -1,0 +1,18 @@
+{
+  "scenario": "tag",
+  "rules": [
+    {
+      "input": {
+        "type": "tag",
+        "key": "key",
+        "value": "val.*"
+      }
+    }
+  ],
+  "expectedRegexMatches": 1,
+  "expectedSpans": [
+    {
+      "operationName": "operation"
+    }
+  ]
+}
