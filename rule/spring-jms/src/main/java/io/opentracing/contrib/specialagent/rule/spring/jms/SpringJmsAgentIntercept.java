@@ -15,8 +15,6 @@
 
 package io.opentracing.contrib.specialagent.rule.spring.jms;
 
-import io.opentracing.contrib.common.WrapperProxy;
-import io.opentracing.contrib.jms.common.TracingMessageConsumer;
 import javax.jms.Message;
 
 import io.opentracing.References;
@@ -68,12 +66,4 @@ public class SpringJmsAgentIntercept {
 
     context.closeAndFinish();
   }
-
-  public static void onReceiveMessage(Object consumer, Object message) {
-    if (WrapperProxy.isWrapper(consumer, TracingMessageConsumer.class))
-      return;
-
-    TracingMessageUtils.buildAndFinishChildSpan((Message) message, GlobalTracer.get());
-  }
-
 }
