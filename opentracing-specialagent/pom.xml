@@ -519,13 +519,6 @@
 
     <dependency>
       <groupId>io.opentracing.contrib.specialagent</groupId>
-      <artifactId>rewrite</artifactId>
-      <version>${project.version}</version>
-      <optional>true</optional>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.opentracing.contrib.specialagent</groupId>
       <artifactId>fingerprint</artifactId>
       <version>${project.version}</version>
       <optional>true</optional>

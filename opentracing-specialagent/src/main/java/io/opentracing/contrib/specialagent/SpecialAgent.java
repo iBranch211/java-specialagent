@@ -16,9 +16,7 @@
 package io.opentracing.contrib.specialagent;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -34,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarFile;
-import java.util.regex.Pattern;
 
 import com.sun.tools.attach.VirtualMachine;
 
@@ -47,6 +44,7 @@ import io.opentracing.util.GlobalTracer;
  *
  * @author Seva Safris
  */
+@SuppressWarnings("restriction")
 public class SpecialAgent extends SpecialAgentBase {
   private enum AttachMode {
     STATIC,
@@ -271,16 +269,16 @@ public class SpecialAgent extends SpecialAgentBase {
           enablePlugin = isInstruPlugin ? allInstruEnabled : allTracerEnabled;
           final HashMap<String,Boolean> pluginNameToEnable = isInstruPlugin ? instruPluginNameToEnable : tracerPluginNameToEnable;
           for (final String pluginName : verbosePluginNames) {
-            final Pattern namePattern = AssembleUtil.convertToNameRegex(pluginName);
-            if (pluginManifest.name.equals(pluginName) || namePattern.matcher(pluginManifest.name).matches()) {
+            final String namePattern = SpecialAgentUtil.convertToNameRegex(pluginName);
+            if (pluginManifest.name.equals(pluginName) || pluginManifest.name.matches(namePattern)) {
               System.setProperty("sa." + (isInstruPlugin ? "instrumentation" : "tracer") + ".plugin." + pluginManifest.name + ".verbose", "true");
               break;
             }
           }
 
           for (final Map.Entry<String,Boolean> entry : pluginNameToEnable.entrySet()) {
-            final Pattern namePattern = AssembleUtil.convertToNameRegex(entry.getKey());
-            if (pluginManifest.name.equals(entry.getKey()) || namePattern.matcher(pluginManifest.name).matches()) {
+            final String namePattern = SpecialAgentUtil.convertToNameRegex(entry.getKey());
+            if (pluginManifest.name.equals(entry.getKey()) || pluginManifest.name.matches(namePattern)) {
               enablePlugin = entry.getValue();
               if (logger.isLoggable(Level.FINER))
                 logger.finer((isInstruPlugin ? "Instrumentation" : "Tracer") + " Plugin " + pluginManifest.name + " is " + (enablePlugin ? "en" : "dis") + "abled");
@@ -638,29 +636,11 @@ public class SpecialAgent extends SpecialAgentBase {
       if (logger.isLoggable(Level.FINE))
         logger.fine("Tracer was resolved and " + (isAgentRunner() ? "deferred to be registered" : "registered") + " with GlobalTracer:\n  " + tracer.getClass().getName() + " from " + (tracer.getClass().getProtectionDomain().getCodeSource() == null ? "null" : tracer.getClass().getProtectionDomain().getCodeSource().getLocation().getPath()));
 
-      return initRewritableTracer(tracer);
-    }
-    finally {
-      if (logger.isLoggable(Level.FINE))
-        logger.fine("\n>>>>>>>>>>>>>>>>>>>>> Loaded Tracer Plugin <<<<<<<<<<<<<<<<<<<<<\n");
-    }
-  }
-
-  private static Tracer initRewritableTracer(final Tracer tracer) throws IOException {
-    final String rewriteProperty = System.getProperty(REWRITE_ARG);
-    if (rewriteProperty == null)
       return tracer;
-
-    if (logger.isLoggable(Level.FINE))
-      logger.fine("\n<<<<<<<<<<<<<<<<<<< Loading Rewritable Tracer >>>>>>>>>>>>>>>>>>\n");
-
-    try (final InputStream in = new FileInputStream(rewriteProperty)) {
-      final List<RewriteRules> rulesManifest = RewriteRules.parseRules(in);
-      return rulesManifest.isEmpty() ? tracer : new RewritableTracer(tracer, rulesManifest);
     }
     finally {
       if (logger.isLoggable(Level.FINE))
-        logger.fine("\n>>>>>>>>>>>>>>>>>>> Loaded Rewritable Tracer <<<<<<<<<<<<<<<<<<<\n");
+        logger.fine("\n>>>>>>>>>>>>>>>>>>>> Loaded Tracer Plugin <<<<<<<<<<<<<<<<<<<<<<\n");
     }
   }
 
