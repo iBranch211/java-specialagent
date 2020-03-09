@@ -15,9 +15,10 @@
 
 package io.opentracing.contrib.specialagent.rule.spring.websocket;
 
+import java.util.ArrayList;
 
 import org.springframework.messaging.simp.stomp.StompHeaders;
-import org.springframework.messaging.support.AbstractMessageChannel;
+import org.springframework.messaging.support.AbstractSubscribableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 
 import io.opentracing.Span;
@@ -30,20 +31,18 @@ import io.opentracing.util.GlobalTracer;
 public class SpringWebSocketAgentIntercept {
   private static final ThreadLocal<Span> spanHolder = new ThreadLocal<>();
 
-  public static void messageChannelSend(final Object thiz) {
-    final AbstractMessageChannel channel = (AbstractMessageChannel)thiz;
-    for (ChannelInterceptor interceptor : channel.getInterceptors()) {
-      if(interceptor instanceof TracingChannelInterceptor)
-        return;
-    }
-    TracingChannelInterceptor tracingChannelInterceptor = null;
-    if(channel.getBeanName().equals("clientOutboundChannel"))
-      tracingChannelInterceptor = new TracingChannelInterceptor(GlobalTracer.get(), Tags.SPAN_KIND_CLIENT);
-    else if(channel.getBeanName().equals("clientInboundChannel"))
-      tracingChannelInterceptor = new TracingChannelInterceptor(GlobalTracer.get(), Tags.SPAN_KIND_SERVER);
+  public static void clientInboundChannel(final Object returned) {
+    final AbstractSubscribableChannel channel = (AbstractSubscribableChannel)returned;
+    final ArrayList<ChannelInterceptor> interceptors = new ArrayList<>(channel.getInterceptors());
+    interceptors.add(new TracingChannelInterceptor(GlobalTracer.get(), Tags.SPAN_KIND_SERVER));
+    channel.setInterceptors(interceptors);
+  }
 
-    if(tracingChannelInterceptor != null)
-      channel.addInterceptor(tracingChannelInterceptor);
+  public static void clientOutboundChannel(final Object returned) {
+    final AbstractSubscribableChannel channel = (AbstractSubscribableChannel)returned;
+    final ArrayList<ChannelInterceptor> interceptors = new ArrayList<>(channel.getInterceptors());
+    interceptors.add(new TracingChannelInterceptor(GlobalTracer.get(), Tags.SPAN_KIND_CLIENT));
+    channel.setInterceptors(interceptors);
   }
 
   public static void sendEnter(final Object arg) {
