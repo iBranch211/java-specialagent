@@ -25,16 +25,11 @@
   </parent>
   <artifactId>jedis</artifactId>
   <name>SpecialAgent Rule for Jedis</name>
-  <properties>
-    <sa.rule.name>jedis</sa.rule.name>
-    <min.version>2.7.0</min.version>
-    <passCompatibility>redis.clients:jedis:[${min.version},]</passCompatibility>
-  </properties>
   <dependencies>
     <dependency>
       <groupId>redis.clients</groupId>
       <artifactId>jedis</artifactId>
-      <version>${min.version}</version>
+      <version>2.7.0</version>
       <optional>true</optional>
       <scope>provided</scope>
     </dependency>

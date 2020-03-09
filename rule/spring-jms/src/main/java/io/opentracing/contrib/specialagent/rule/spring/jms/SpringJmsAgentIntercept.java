@@ -22,9 +22,7 @@ import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.Tracer.SpanBuilder;
-import io.opentracing.contrib.common.WrapperProxy;
 import io.opentracing.contrib.jms.common.SpanContextContainer;
-import io.opentracing.contrib.jms.common.TracingMessageConsumer;
 import io.opentracing.contrib.jms.common.TracingMessageUtils;
 import io.opentracing.contrib.specialagent.AgentRuleUtil;
 import io.opentracing.contrib.specialagent.LocalSpanContext;
@@ -67,10 +65,5 @@ public class SpringJmsAgentIntercept {
       AgentRuleUtil.setErrorTag(context.getSpan(), thrown);
 
     context.closeAndFinish();
-  }
-
-  public static void onReceiveMessage(final Object consumer, final Object message) {
-    if (!WrapperProxy.isWrapper(consumer, TracingMessageConsumer.class))
-      TracingMessageUtils.buildAndFinishChildSpan((Message)message, GlobalTracer.get());
   }
 }

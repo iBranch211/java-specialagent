@@ -95,7 +95,7 @@ public final class TestUtil {
       return;
 
     if (latch != null)
-      latch.await(1, TimeUnit.MINUTES);
+      latch.await(15, TimeUnit.SECONDS);
 
     printSpans(tracer);
 

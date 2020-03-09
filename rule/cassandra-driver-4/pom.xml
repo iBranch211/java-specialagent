@@ -28,15 +28,13 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <sa.rule.name>cassandra:driver:4</sa.rule.name>
-    <min.version>4.0.0</min.version>
-    <passCompatibility>com.datastax.oss:java-driver-core:[${min.version},]</passCompatibility>
+    <sa.plugin.name>cassandra:driver:4</sa.plugin.name>
   </properties>
   <dependencies>
     <dependency>
       <groupId>com.datastax.oss</groupId>
       <artifactId>java-driver-core</artifactId>
-      <version>${min.version}</version>
+      <version>4.0.0</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>

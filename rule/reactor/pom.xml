@@ -28,9 +28,7 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <sa.rule.name>reactor</sa.rule.name>
-    <min.version>3.2.3.RELEASE</min.version>
-    <passCompatibility>io.projectreactor:reactor-core:[${min.version},]</passCompatibility>
+    <version.reactor-core>3.2.3.RELEASE</version.reactor-core>
   </properties>
   <dependencies>
     <dependency>
@@ -42,7 +40,7 @@
     <dependency>
       <groupId>io.projectreactor</groupId>
       <artifactId>reactor-core</artifactId>
-      <version>${min.version}</version>
+      <version>${version.reactor-core}</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>

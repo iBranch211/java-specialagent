@@ -25,9 +25,6 @@
   <artifactId>redisson</artifactId>
   <name>SpecialAgent Rule for Redisson</name>
   <properties>
-    <sa.rule.name>redisson</sa.rule.name>
-    <min.version>3.11.0</min.version>
-    <passCompatibility>org.redisson:redisson:[${min.version},]</passCompatibility>
     <version.opentracing.redis>0.1.14</version.opentracing.redis>
   </properties>
   <dependencies>
@@ -40,7 +37,7 @@
     <dependency>
       <groupId>org.redisson</groupId>
       <artifactId>redisson</artifactId>
-      <version>${min.version}</version>
+      <version>3.11.0</version>
       <optional>true</optional>
       <scope>provided</scope>
     </dependency>

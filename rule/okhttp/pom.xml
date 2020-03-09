@@ -26,9 +26,7 @@
   <artifactId>okhttp</artifactId>
   <name>SpecialAgent Rule for OkHttp</name>
   <properties>
-    <sa.rule.name>okhttp</sa.rule.name>
-    <min.version>3.5.0</min.version>
-    <passCompatibility>com.squareup.okhttp3:okhttp:[${min.version},]</passCompatibility>
+    <version.okhttp3>3.14.2</version.okhttp3>
   </properties>
   <dependencies>
     <dependency>
@@ -46,14 +44,14 @@
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
       <artifactId>okhttp</artifactId>
-      <version>${min.version}</version>
+      <version>${version.okhttp3}</version>
       <optional>true</optional>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
       <artifactId>mockwebserver</artifactId>
-      <version>${min.version}</version>
+      <version>${version.okhttp3}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

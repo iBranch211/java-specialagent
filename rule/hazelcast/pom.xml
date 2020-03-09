@@ -26,10 +26,7 @@
   <artifactId>hazelcast</artifactId>
   <name>SpecialAgent Rule for Hazelcast</name>
   <properties>
-    <sa.rule.name>hazelcast</sa.rule.name>
-    <min.version>3.12</min.version>
-    <max.version>4.0-BETA-1</max.version>
-    <passCompatibility>com.hazelcast:hazelcast:[${min.version},${max.version})</passCompatibility>
+    <version.hazelcast>3.12</version.hazelcast>
   </properties>
   <dependencies>
     <dependency>
@@ -41,14 +38,14 @@
     <dependency>
       <groupId>com.hazelcast</groupId>
       <artifactId>hazelcast</artifactId>
-      <version>${min.version}</version>
+      <version>${version.hazelcast}</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>com.hazelcast</groupId>
       <artifactId>hazelcast-client</artifactId>
-      <version>${min.version}</version>
+      <version>${version.hazelcast}</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>

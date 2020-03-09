@@ -25,16 +25,11 @@
   </parent>
   <artifactId>asynchttpclient</artifactId>
   <name>SpecialAgent Rule for AsyncHttpClient</name>
-  <properties>
-    <sa.rule.name>asynchttpclient</sa.rule.name>
-    <min.version>2.7.0</min.version>
-    <passCompatibility>org.asynchttpclient:async-http-client:[${min.version},]</passCompatibility>
-  </properties>
   <dependencies>
     <dependency>
       <groupId>org.asynchttpclient</groupId>
       <artifactId>async-http-client</artifactId>
-      <version>${min.version}</version>
+      <version>2.7.0</version>
       <optional>true</optional>
       <scope>provided</scope>
     </dependency>
