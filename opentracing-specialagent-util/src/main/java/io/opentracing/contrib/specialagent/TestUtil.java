@@ -115,6 +115,7 @@ public final class TestUtil {
           spanCountMap.put(componentSpanCount.componentName, spanCountMap.get(componentSpanCount.componentName) + 1);
 
         traceIdMap.put(componentSpanCount.componentName, span.context().traceId());
+
         if (!componentSpanCount.sameTrace)
           continue;
 
