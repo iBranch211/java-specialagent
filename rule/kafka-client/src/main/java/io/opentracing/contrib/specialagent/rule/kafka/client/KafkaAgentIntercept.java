@@ -28,10 +28,9 @@ import io.opentracing.contrib.kafka.TracingKafkaUtils;
 import io.opentracing.util.GlobalTracer;
 
 public class KafkaAgentIntercept {
-  public static void onConsumerExit(final Object records) {
-    if (records != null)
-      for (final ConsumerRecord<?,?> record : (ConsumerRecords<?,?>)records)
-        TracingKafkaUtils.buildAndFinishChildSpan(record, GlobalTracer.get());
+  public static void onConsumerEnter(final Object records) {
+    for (final ConsumerRecord<?,?> record : (ConsumerRecords<?,?>)records)
+      TracingKafkaUtils.buildAndFinishChildSpan(record, GlobalTracer.get());
   }
 
   public static Object onProducerEnter(final Object record, final Object callback) {
