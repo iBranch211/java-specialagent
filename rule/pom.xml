@@ -104,7 +104,6 @@
         <module>pulsar-client</module>
         <module>pulsar-functions</module>
         <module>dynamic</module>
-        <module>cxf</module>
       </modules>
       <build>
         <resources>
@@ -306,7 +305,7 @@
                 <goals>
                   <goal>test-compatibility</goal>
                 </goals>
-                <phase>process-classes</phase>
+                <phase>test</phase>
                 <configuration>
                   <passCompatibility>${passCompatibility}</passCompatibility>
                   <failCompatibility>${failCompatibility}</failCompatibility>

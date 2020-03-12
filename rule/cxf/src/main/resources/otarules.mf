@@ -1,2 +1,0 @@
-io.opentracing.contrib.specialagent.rule.cxf.CxfRsAgentRule
-io.opentracing.contrib.specialagent.rule.cxf.CxfWsAgentRule
