@@ -42,8 +42,6 @@
         <module>okhttp</module>
         <module>jdbc</module>
         <module>concurrent</module>
-        <module>dubbo-2.6</module>
-        <module>dubbo-2.7</module>
         <module>mongo-driver</module>
         <module>servlet</module>
         <module>camel</module>
@@ -106,6 +104,7 @@
         <module>pulsar-client</module>
         <module>pulsar-functions</module>
         <module>dynamic</module>
+        <module>cxf</module>
       </modules>
       <build>
         <resources>
@@ -307,7 +306,7 @@
                 <goals>
                   <goal>test-compatibility</goal>
                 </goals>
-                <phase>process-classes</phase>
+                <phase>test</phase>
                 <configuration>
                   <passCompatibility>${passCompatibility}</passCompatibility>
                   <failCompatibility>${failCompatibility}</failCompatibility>

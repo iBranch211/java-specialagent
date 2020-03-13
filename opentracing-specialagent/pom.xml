@@ -234,18 +234,6 @@
         </dependency>
         <dependency>
           <groupId>io.opentracing.contrib.specialagent.rule</groupId>
-          <artifactId>dubbo-2.6</artifactId>
-          <version>${project.version}</version>
-          <scope>provided</scope>
-        </dependency>
-        <dependency>
-          <groupId>io.opentracing.contrib.specialagent.rule</groupId>
-          <artifactId>dubbo-2.7</artifactId>
-          <version>${project.version}</version>
-          <scope>provided</scope>
-        </dependency>
-        <dependency>
-          <groupId>io.opentracing.contrib.specialagent.rule</groupId>
           <artifactId>lettuce-5.2</artifactId>
           <version>${project.version}</version>
           <scope>provided</scope>
@@ -490,6 +478,12 @@
           <version>${project.version}</version>
           <scope>provided</scope>
         </dependency>
+        <dependency>
+          <groupId>io.opentracing.contrib.specialagent.rule</groupId>
+          <artifactId>cxf</artifactId>
+          <version>${project.version}</version>
+          <scope>provided</scope>
+        </dependency>
       </dependencies>
     </profile>
     <profile>
@@ -535,6 +529,13 @@
       <scope>test</scope>
     </dependency>
 
+    <dependency>
+      <groupId>io.opentracing.contrib.specialagent</groupId>
+      <artifactId>rewrite</artifactId>
+      <version>${project.version}</version>
+      <optional>true</optional>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>io.opentracing.contrib.specialagent</groupId>
       <artifactId>fingerprint</artifactId>
