@@ -53,13 +53,13 @@ You will get a warning if the configuration has a logical error and the spans wi
 If you have configurations for multiple agent rules and only one of them has a configuration error,
 only the faulty configuration will be removed and the other continues to work as expected.
 
-## Dropping data
+## Blacklisting
 
-Dropping data is the most common use case to either reduce the traffic/noise - or to redact user information.
+Blacklisting is the most common use case to either reduce the traffic/noise - or to redact user information.
 
-### Dropping a tag
+### Blacklist a tag
 
-The following rule definition drops the `http.url` tag:
+The following rule definition blacklists the `http.url` tag:
 
 ```json
 {
@@ -74,7 +74,7 @@ The following rule definition drops the `http.url` tag:
 }
 ```
 
-If you only want to drop `http.url` if it equals `http://example.com`, add a `value`:
+If you only want to blacklist `http.url` if it equals `http://example.com`, add a `value`:
 
 ```json
 {
@@ -92,7 +92,7 @@ If you only want to drop `http.url` if it equals `http://example.com`, add a `va
 
 **`value` is interpreted as a regex.**
 
-If you want to drop all `http.url`s that start with `http://`, specify a regex in `value`:
+If you want to blacklist all `http.url`s that start with `http://`, specify a regex in `value`:
 
 ```json
 {
@@ -113,7 +113,7 @@ Note
 2. Use the [Java](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html) pattern syntax.
 3. It's possible to use a number of boolean as `value`, which will not be interpreted as a regular expression.
 
-If you want to drop a specific tag whose value is the string literal `Are you happy?`, make sure to escape the `?`, because `value` is interpreted as a regex:
+If you want to blacklist a specific tag whose value is the string literal `Are you happy?`, make sure to escape the `?`, because `value` is interpreted as a regex:
 
 ```json
 {
@@ -129,11 +129,11 @@ If you want to drop a specific tag whose value is the string literal `Are you ha
 }
 ```
 
-### Dropping a log entry
+### Blacklist a log entry
 
-Dropping a log entry uses the same syntax as dropping a tag, except that the `type` is `log`.
+Blacklisting a log entry uses the same syntax as blacklisting a tag, except that the `type` is `log`.
 
-To drop a log event, use
+To blacklist a log event, use
 
 ```json
 {
@@ -147,10 +147,10 @@ To drop a log event, use
 }
 ```
 
-This would drop all log events (for jedis).
-You can restrict the log events to be dropped using `value` (see above).
+This would blacklist all log events (for jedis).
+You can restrict the log events to be blacklisted using `value` (see above).
 
-To drop a single field from a log entry with fields, use
+To blacklist a single field from a log entry with fields, use
 
 ```json
 {
@@ -171,14 +171,14 @@ To drop a single field from a log entry with fields, use
 }
 ```
 
-Only the `http.method` and `http.url` fields will be removed from the log entry. If all fields from the log entry are dropped, the entire log entry is dropped as well.
+Only the `http.method` and `http.url` fields will be removed from the log entry. If all fields from the log entry are blacklisted, the entire log entry is blacklisted as well.
 
-### Dropping an operation name
+### Blacklist an operation name
 
 Every span must have an operation name, hence it's not possible to create a span without an operation name.
 
 However, it's also possible to change the operation name of a span after it has started -
-and this call can be dropped. The result is the same as if
+and this call can be blacklisted. The result is the same as if
 [setOperationName](https://javadoc.io/doc/io.opentracing/opentracing-api/0.20.2/io/opentracing/Span.html#setOperationName-java.lang.String-) had not been called.
 
 ```json
@@ -193,12 +193,12 @@ and this call can be dropped. The result is the same as if
 }
 ```
 
-This would drop all calls to `setOperationName` (in jedis).
-You can restrict calls to be dropped using `value` (see above).
+This would blacklist all calls to `setOperationName` (in jedis).
+You can restrict calls to be blacklisted using `value` (see above).
 
 ## Advanced use cases
 
-The remaining use case cover advanced scenarios that go beyond dropping data.
+The remaining use case cover advanced scenarios that go beyond blacklisting.
 
 ### Transforming values
 
@@ -351,7 +351,7 @@ Multiple `input`s and `output`s can be used together, for example:
 
 ### Global rules
 
-If you need to apply a rule globally, you can use `*`, e.g. for dropping all `http.url` tags:
+If you need to apply a rule globally, you can use `all`, e.g. for blacklisting all `http.url` tags:
 
 ```json
 {
@@ -390,5 +390,3 @@ You can add arbitrary tags when a span is started as follows:
 ```
 
 This would add a tag `service` with value `my_service` to all spans in all rules.
-
-Note that this would not work as expected with a `log` output. If the [setOperationName](https://javadoc.io/doc/io.opentracing/opentracing-api/0.20.2/io/opentracing/Span.html#setOperationName-java.lang.String-) is called after the span was started, then you would have two log entries instead of one.
