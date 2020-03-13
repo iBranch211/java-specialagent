@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.pulsar.broker.PulsarService;
 import org.apache.pulsar.broker.ServiceConfiguration;
@@ -58,11 +59,12 @@ import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 
 public class PulsarFunctionsITest {
   private static final String CLUSTER_NAME = "use";
-  private static final int ZOOKEEPER_PORT = TestUtil.nextFreePort();
+  private static final int ZOOKEEPER_PORT = 8880;
+  private static final AtomicInteger port = new AtomicInteger(ZOOKEEPER_PORT);
   private static final String tenant = "external-repl-prop";
-  private static final int brokerWebServicePort = TestUtil.nextFreePort();
-  private static final int brokerServicePort = TestUtil.nextFreePort();
-  private static final int workerServicePort = TestUtil.nextFreePort();
+  private static final int brokerWebServicePort = 8885;
+  private static final int brokerServicePort = 8886;
+  private static final int workerServicePort = 9999;
   private static WorkerConfig workerConfig;
   private static final String pulsarFunctionsNamespace = tenant + "/use/pulsar-function-admin";
 
@@ -73,7 +75,7 @@ public class PulsarFunctionsITest {
 
   static void start() throws Exception {
     // Start local bookkeeper ensemble
-    final LocalBookkeeperEnsemble bkEnsemble = new LocalBookkeeperEnsemble(3, ZOOKEEPER_PORT, TestUtil::nextFreePort);
+    final LocalBookkeeperEnsemble bkEnsemble = new LocalBookkeeperEnsemble(3, ZOOKEEPER_PORT, port::incrementAndGet);
     bkEnsemble.start();
 
     final String brokerServiceUrl = "http://127.0.0.1:" + brokerWebServicePort;

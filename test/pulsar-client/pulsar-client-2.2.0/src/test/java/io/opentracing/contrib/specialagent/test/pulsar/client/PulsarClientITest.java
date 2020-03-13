@@ -15,10 +15,12 @@
 
 package io.opentracing.contrib.specialagent.test.pulsar.client;
 
+import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.pulsar.broker.PulsarService;
 import org.apache.pulsar.broker.ServiceConfiguration;
@@ -36,11 +38,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import io.opentracing.contrib.specialagent.TestUtil;
-import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 
 public class PulsarClientITest {
   private static final String CLUSTER_NAME = "test-cluster";
-  private static final int ZOOKEEPER_PORT = TestUtil.nextFreePort();
+  private static final int ZOOKEEPER_PORT = 8880;
+  private static final AtomicInteger port = new AtomicInteger(ZOOKEEPER_PORT);
 
   public static void main(final String[] args) throws Exception {
     if (!System.getProperty("java.version").startsWith("1.8.")) {
@@ -48,11 +50,11 @@ public class PulsarClientITest {
       return;
     }
 
-    final LocalBookkeeperEnsemble bkEnsemble = new LocalBookkeeperEnsemble(3, ZOOKEEPER_PORT, TestUtil::nextFreePort);
+    final LocalBookkeeperEnsemble bkEnsemble = new LocalBookkeeperEnsemble(3, ZOOKEEPER_PORT, port::incrementAndGet);
     bkEnsemble.startStandalone();
 
-    final int brokerWebServicePort = TestUtil.nextFreePort();
-    final int brokerServicePort = TestUtil.nextFreePort();
+    final int brokerWebServicePort = 8885;
+    final int brokerServicePort = 8886;
 
     final ServiceConfiguration config = new ServiceConfiguration();
     config.setClusterName(CLUSTER_NAME);
@@ -73,7 +75,7 @@ public class PulsarClientITest {
     try {
       setBrokerServicePortInt = config.getClass().getMethod("setBrokerServicePort", Integer.TYPE);
     }
-    catch (final NoSuchMethodException ignore) {
+    catch (NoSuchMethodException ignore) {
       setBrokerServicePortOpt = config.getClass().getMethod("setBrokerServicePort", Optional.class);
     }
 
@@ -97,10 +99,10 @@ public class PulsarClientITest {
 
       try (final PulsarClient client = PulsarClient.builder().serviceUrl(pulsarService.getBrokerServiceUrl()).build()) {
         try (final PulsarAdmin admin = pulsarService.getAdminClient()) {
-          final ClusterData clusterData = new ClusterData(pulsarService.getBrokerServiceUrl());
+          ClusterData clusterData = new ClusterData(pulsarService.getBrokerServiceUrl());
           admin.clusters().createCluster(CLUSTER_NAME, clusterData);
 
-          final TenantInfo propAdmin = new TenantInfo();
+          TenantInfo propAdmin = new TenantInfo();
           propAdmin.getAdminRoles().add("superUser");
           propAdmin.setAllowedClusters(Sets.newHashSet(Lists.newArrayList(CLUSTER_NAME)));
 

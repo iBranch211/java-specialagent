@@ -17,10 +17,10 @@ package io.opentracing.contrib.specialagent.rule.pulsar.client;
 
 import static org.junit.Assert.*;
 
-import io.opentracing.contrib.specialagent.TestUtil;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.pulsar.broker.PulsarService;
 import org.apache.pulsar.broker.ServiceConfiguration;
@@ -56,7 +56,8 @@ public class PulsarClientTest {
   private static final boolean isJdkSupported = System.getProperty("java.version").startsWith("1.8.");
 
   private static final String CLUSTER_NAME = "test-cluster";
-  private static final int ZOOKEEPER_PORT = TestUtil.nextFreePort();
+  private static final int ZOOKEEPER_PORT = 8880;
+  private static final AtomicInteger port = new AtomicInteger(ZOOKEEPER_PORT);
 
   private static LocalBookkeeperEnsemble bkEnsemble;
   private static PulsarService pulsarService;
@@ -66,11 +67,11 @@ public class PulsarClientTest {
     if (!isJdkSupported)
       return;
 
-    bkEnsemble = new LocalBookkeeperEnsemble(3, ZOOKEEPER_PORT, TestUtil::nextFreePort);
+    bkEnsemble = new LocalBookkeeperEnsemble(3, ZOOKEEPER_PORT, port::incrementAndGet);
     bkEnsemble.start();
 
-    final int brokerWebServicePort = TestUtil.nextFreePort();
-    final int brokerServicePort = TestUtil.nextFreePort();
+    int brokerWebServicePort = 8885;
+    int brokerServicePort = 8886;
 
     final ServiceConfiguration config = new ServiceConfiguration();
     config.setClusterName(CLUSTER_NAME);
@@ -87,10 +88,10 @@ public class PulsarClientTest {
     pulsarService.start();
 
     try (final PulsarAdmin admin = pulsarService.getAdminClient()) {
-      final ClusterData clusterData = new ClusterData(pulsarService.getBrokerServiceUrl());
+      ClusterData clusterData = new ClusterData(pulsarService.getBrokerServiceUrl());
       admin.clusters().createCluster(CLUSTER_NAME, clusterData);
 
-      final TenantInfo propAdmin = new TenantInfo();
+      TenantInfo propAdmin = new TenantInfo();
       propAdmin.getAdminRoles().add("superUser");
       propAdmin.setAllowedClusters(Sets.newHashSet(Lists.newArrayList(CLUSTER_NAME)));
 
@@ -139,7 +140,7 @@ public class PulsarClientTest {
       else
         producer.send("My message".getBytes());
 
-      final Message<byte[]> message;
+      Message<byte[]> message;
       if (async)
         message = consumer.receiveAsync().get(15, TimeUnit.SECONDS);
       else

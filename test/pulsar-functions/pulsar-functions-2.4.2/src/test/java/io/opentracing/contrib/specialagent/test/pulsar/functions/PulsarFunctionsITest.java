@@ -25,6 +25,7 @@ import java.net.URL;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.pulsar.broker.PulsarService;
@@ -53,11 +54,12 @@ import io.opentracing.contrib.specialagent.TestUtil.ComponentSpanCount;
 
 public class PulsarFunctionsITest {
   private static final String CLUSTER_NAME = "use";
-  private static final int ZOOKEEPER_PORT = TestUtil.nextFreePort();
+  private static final int ZOOKEEPER_PORT = 8880;
+  private static final AtomicInteger port = new AtomicInteger(ZOOKEEPER_PORT);
   private static final String tenant = "external-repl-prop";
-  private static final int brokerWebServicePort = TestUtil.nextFreePort();
-  private static final int brokerServicePort = TestUtil.nextFreePort();
-  private static final int workerServicePort = TestUtil.nextFreePort();
+  private static final int brokerWebServicePort = 8885;
+  private static final int brokerServicePort = 8886;
+  private static final int workerServicePort = 9999;
   private static WorkerConfig workerConfig;
 
   public static void main(final String[] args) throws Exception {
@@ -78,7 +80,7 @@ public class PulsarFunctionsITest {
 
   static void start() throws Exception {
     // Start local bookkeeper ensemble
-    final LocalBookkeeperEnsemble bkEnsemble = new LocalBookkeeperEnsemble(3, ZOOKEEPER_PORT,TestUtil::nextFreePort);
+    final LocalBookkeeperEnsemble bkEnsemble = new LocalBookkeeperEnsemble(3, ZOOKEEPER_PORT, port::incrementAndGet);
     bkEnsemble.start();
 
     final String brokerServiceUrl = "http://127.0.0.1:" + brokerWebServicePort;
@@ -182,7 +184,7 @@ public class PulsarFunctionsITest {
     System.setProperty(JAVA_INSTANCE_JAR_PROPERTY, FutureUtil.class.getProtectionDomain().getCodeSource().getLocation().getPath());
 
     workerConfig = new WorkerConfig();
-    final String pulsarFunctionsNamespace = tenant + "/pulsar-function-admin";
+    String pulsarFunctionsNamespace = tenant + "/pulsar-function-admin";
     workerConfig.setPulsarFunctionsNamespace(pulsarFunctionsNamespace);
     workerConfig.setSchedulerClassName(org.apache.pulsar.functions.worker.scheduler.RoundRobinScheduler.class.getName());
     workerConfig.setThreadContainerFactory(new WorkerConfig.ThreadContainerFactory().setThreadGroupName("use"));

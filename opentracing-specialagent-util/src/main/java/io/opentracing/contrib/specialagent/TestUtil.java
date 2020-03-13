@@ -16,7 +16,6 @@
 package io.opentracing.contrib.specialagent;
 
 import java.lang.reflect.Field;
-import java.net.ServerSocket;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -24,7 +23,6 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import io.opentracing.Span;
 import io.opentracing.Tracer;
@@ -36,22 +34,6 @@ import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public final class TestUtil {
-  private static final int MIN_PORT = 15000;
-  private static final int MAX_PORT = 32000;
-  private static final AtomicInteger port = new AtomicInteger(MIN_PORT);
-
-  public static int nextFreePort() {
-    for (int p; (p = port.getAndIncrement()) <= MAX_PORT;) {
-      try (final ServerSocket socket = new ServerSocket(p)) {
-        return p;
-      }
-      catch (final Exception ignore) {
-      }
-    }
-
-    throw new RuntimeException("Unable to find a free port");
-  }
-
   public static CountDownLatch initExpectedSpanLatch(final int expectedSpans) {
     if (!(TestUtil.getGlobalTracer() instanceof MockTracer))
       return null;
@@ -133,6 +115,7 @@ public final class TestUtil {
           spanCountMap.put(componentSpanCount.componentName, spanCountMap.get(componentSpanCount.componentName) + 1);
 
         traceIdMap.put(componentSpanCount.componentName, span.context().traceId());
+
         if (!componentSpanCount.sameTrace)
           continue;
 
