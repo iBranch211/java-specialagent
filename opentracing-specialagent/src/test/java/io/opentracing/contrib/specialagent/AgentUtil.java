@@ -16,7 +16,6 @@
 package io.opentracing.contrib.specialagent;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.nio.file.Path;
@@ -27,10 +26,6 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import org.apache.maven.model.Model;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-
 /**
  * Utility functions for the {@code AgentRunner}. This class was created as an
  * indirection from {@code AgentRunner} in order to solve class loading problems
@@ -40,7 +35,7 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
  *
  * @author Seva Safris
  */
-public final class AgentUtil {
+class AgentUtil {
   private static final Predicate<String> predicate = new Predicate<String>() {
     @Override
     public boolean test(final String t) {
@@ -58,10 +53,20 @@ public final class AgentUtil {
    *         well as subpaths of the paths.
    * @throws IOException If an I/O error has occurred.
    */
-  public static Set<String> getClassFiles(final List<File> files) throws IOException {
+  static Set<String> getClassFiles(final List<File> files) throws IOException {
     final Set<String> classFiles = new HashSet<>();
     for (final File file : files) {
-      if (file.isDirectory()) {
+      if (file.getName().endsWith(".jar")) {
+        try (final JarFile jarFile = new JarFile(file)) {
+          final Enumeration<JarEntry> entries = jarFile.entries();
+          while (entries.hasMoreElements()) {
+            final JarEntry entry = entries.nextElement();
+            if (predicate.test(entry.getName()))
+              classFiles.add(entry.getName());
+          }
+        }
+      }
+      else {
         final Path filePath = file.toPath();
         AssembleUtil.recurseDir(file, new Predicate<File>() {
           @Override
@@ -74,24 +79,8 @@ public final class AgentUtil {
           }
         });
       }
-      else if (file.getName().endsWith(".jar")) {
-        try (final JarFile jarFile = new JarFile(file)) {
-          final Enumeration<JarEntry> entries = jarFile.entries();
-          while (entries.hasMoreElements()) {
-            final JarEntry entry = entries.nextElement();
-            if (predicate.test(entry.getName()))
-              classFiles.add(entry.getName());
-          }
-        }
-      }
-      else {
-        throw new IOException("Unknown file type: " + file);
-      }
     }
 
     return classFiles;
-  }
-
-  private AgentUtil() {
   }
 }
