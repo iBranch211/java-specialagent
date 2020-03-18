@@ -56,7 +56,6 @@
     <module>jedis</module>
     <module>jms</module>
     <module>kafka-client</module>
-    <module>kafka-streams</module>
     <module>lettuce</module>
     <module>mongo-driver-async</module>
     <module>mongo-driver-reactive</module>

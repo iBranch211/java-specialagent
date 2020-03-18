@@ -18,10 +18,9 @@ package io.opentracing.contrib.specialagent;
 import java.lang.reflect.Field;
 import java.net.ServerSocket;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -121,7 +120,6 @@ public final class TestUtil {
     final List<MockSpan> spans = tracer.finishedSpans();
     final Map<String,Integer> spanCountMap = new HashMap<>();
     final Map<String,Long> traceIdMap = new HashMap<>();
-    final Set<Long> traceIds = new HashSet<>();
     for (final MockSpan span : spans) {
       printSpan(span);
       for (final ComponentSpanCount componentSpanCount : componentSpanCounts) {
@@ -134,16 +132,22 @@ public final class TestUtil {
         else
           spanCountMap.put(componentSpanCount.componentName, spanCountMap.get(componentSpanCount.componentName) + 1);
 
-        if (componentSpanCount.sameTrace && traceIdMap.containsKey(componentSpanCount.componentName) && !traceIdMap.get(componentSpanCount.componentName).equals(span.context().traceId()))
-          throw new AssertionError("Not the same trace of " + componentSpanCount.componentName);
-
-        traceIds.add(span.context().traceId());
         traceIdMap.put(componentSpanCount.componentName, span.context().traceId());
+        if (!componentSpanCount.sameTrace)
+          continue;
+
+        if (traceIdMap.containsKey(componentSpanCount.componentName) && !traceIdMap.get(componentSpanCount.componentName).equals(span.context().traceId()))
+          throw new AssertionError("Not the same trace of " + componentSpanCount.componentName);
       }
     }
 
-    if (sameTrace && traceIds.size() > 1)
-      throw new AssertionError("Not the same trace");
+    if (sameTrace && traceIdMap.size() > 1) {
+      final Iterator<Long> iterator = traceIdMap.values().iterator();
+      final long traceId = iterator.next();
+      while (iterator.hasNext())
+        if (iterator.next() != traceId)
+          throw new AssertionError("Not the same trace");
+    }
 
     for (final ComponentSpanCount componentSpanCount : componentSpanCounts) {
       if (!spanCountMap.containsKey(componentSpanCount.componentName))
