@@ -15,17 +15,13 @@
 
 package io.opentracing.contrib.specialagent.rule.rabbitmq.client;
 
-import static org.mockito.Mockito.*;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 import org.apache.qpid.server.SystemLauncher;
 import org.apache.qpid.server.SystemLauncherListener;
-import org.apache.qpid.server.model.Container;
 import org.apache.qpid.server.model.Port;
 import org.apache.qpid.server.model.SystemConfig;
 
@@ -36,7 +32,7 @@ class EmbeddedAMQPBroker {
 
     @Override
     public void onContainerResolve(final SystemConfig<?> systemConfig) {
-      this.systemConfig = Objects.requireNonNull(systemConfig);
+      this.systemConfig = systemConfig;
     }
 
     @Override
@@ -45,17 +41,11 @@ class EmbeddedAMQPBroker {
 
     @Override
     public void errorOnStartup(final RuntimeException e) {
-      throw e;
     }
 
     @Override
     public void afterStartup() {
-      if (systemConfig == null)
-        throw new IllegalStateException("broker.onContainerResolve(SystemConfig) was not called");
-
-      final Container<?> container = systemConfig.getContainer();
-      final Port<?> port = container.getChildByName(Port.class, "AMQP");
-      brokerPort = port.getBoundPort();
+      brokerPort = systemConfig.getContainer().getChildByName(Port.class, "AMQP").getBoundPort();
     }
 
     @Override
@@ -68,7 +58,6 @@ class EmbeddedAMQPBroker {
 
     @Override
     public void exceptionOnShutdown(final Exception e) {
-      e.printStackTrace();
     }
   });
 

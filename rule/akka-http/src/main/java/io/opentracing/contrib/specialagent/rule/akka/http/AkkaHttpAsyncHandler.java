@@ -23,7 +23,7 @@ import akka.http.javadsl.model.HttpResponse;
 import akka.japi.Function;
 import io.opentracing.Scope;
 import io.opentracing.Span;
-import io.opentracing.contrib.specialagent.OpenTracingApiUtil;
+import io.opentracing.contrib.specialagent.AgentRuleUtil;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
@@ -43,7 +43,7 @@ public class AkkaHttpAsyncHandler implements Function<HttpRequest,CompletableFut
         span.finish();
         return httpResponse;
       }).exceptionally(throwable -> {
-        OpenTracingApiUtil.setErrorTag(span, throwable);
+        AgentRuleUtil.setErrorTag(span, throwable);
         span.finish();
         return null;
       });
