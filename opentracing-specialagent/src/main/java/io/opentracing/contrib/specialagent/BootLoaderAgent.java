@@ -48,14 +48,12 @@ import net.bytebuddy.utility.JavaModule;
 public class BootLoaderAgent {
 //  public static final Logger logger = Logger.getLogger(BootLoaderAgent.class);
   public static final CachedClassFileLocator cachedLocator;
-  public static final List<JarFile> jarFiles = new ArrayList<>();
-  private static boolean loaded = false;
 
   static {
     try {
       cachedLocator = new CachedClassFileLocator(ClassFileLocator.ForClassLoader.ofSystemLoader(),
         // BootLoaderAgent @Advice classes
-        /*ForName1.class, ForName2.class, FindBootstrapClassOrNull.class,*/ FindBootstrapResource.class, FindBootstrapResources.class, AppendToBootstrap.class,
+        FindBootstrapResource.class, FindBootstrapResources.class, AppendToBootstrap.class,
         // ClassLoaderAgent @Advice classes (only necessary for ClassLoaderAgentTest)
         ClassLoaderAgentRule.DefineClass.class, ClassLoaderAgentRule.LoadClass.class, ClassLoaderAgentRule.FindResource.class, ClassLoaderAgentRule.FindResources.class,
         // SpecialAgentAgent @Advice classes (only necessary for ClassLoaderAgentTest)
@@ -65,6 +63,9 @@ public class BootLoaderAgent {
       throw new ExceptionInInitializerError(e);
     }
   }
+
+  public static final List<JarFile> jarFiles = new ArrayList<>();
+  private static boolean loaded = false;
 
   public static void premain(final Instrumentation inst, final JarFile ... jarFiles) {
     if (loaded)
@@ -76,39 +77,39 @@ public class BootLoaderAgent {
           BootLoaderAgent.jarFiles.add(jarFile);
 
     final AgentBuilder builder = new AgentBuilder.Default()
-      .ignore(none())
+      .ignore(nameStartsWith("net.bytebuddy.").or(nameStartsWith("sun.reflect.")).or(isSynthetic()), any(), any())
       .disableClassFormatChanges()
       .with(RedefinitionStrategy.RETRANSFORMATION)
       .with(InitializationStrategy.NoOp.INSTANCE)
       .with(TypeStrategy.Default.REDEFINE);
 
-    final Narrowable j8 = builder.type(isSubTypeOf(ClassLoader.class));
+    final Narrowable j8 = builder.type(is(ClassLoader.class));
     j8.transform(new Transformer() {
       @Override
       public Builder<?> transform(final Builder<?> builder, final TypeDescription typeDescription, final ClassLoader classLoader, final JavaModule module) {
-        return builder.visit(Advice.to(FindBootstrapResource.class, cachedLocator).on(isStatic().and(named("getBootstrapResource").and(returns(URL.class).and(takesArguments(1).and(takesArgument(0, String.class)))))));
+        return builder.visit(Advice.to(FindBootstrapResource.class, cachedLocator).on(isStatic().and(named("getBootstrapResource").and(returns(URL.class).and(takesArguments(String.class))))));
       }})
     .installOn(inst);
 
     j8.transform(new Transformer() {
       @Override
       public Builder<?> transform(final Builder<?> builder, final TypeDescription typeDescription, final ClassLoader classLoader, final JavaModule module) {
-        return builder.visit(Advice.to(FindBootstrapResources.class, cachedLocator).on(isStatic().and(named("getBootstrapResources").and(returns(Enumeration.class).and(takesArguments(1).and(takesArgument(0, String.class)))))));
+        return builder.visit(Advice.to(FindBootstrapResources.class, cachedLocator).on(isStatic().and(named("getBootstrapResources").and(returns(Enumeration.class).and(takesArguments(String.class))))));
       }})
     .installOn(inst);
 
-    final Narrowable j9 = builder.type(hasSuperType(named("jdk.internal.loader.BuiltinClassLoader")));
+    final Narrowable j9 = builder.type(named("jdk.internal.loader.BootLoader"));
     j9.transform(new Transformer() {
       @Override
       public Builder<?> transform(final Builder<?> builder, final TypeDescription typeDescription, final ClassLoader classLoader, final JavaModule module) {
-        return builder.visit(Advice.to(FindBootstrapResource.class, cachedLocator).on(named("findResource").and(returns(URL.class).and(takesArguments(1).and(takesArgument(0, String.class))))));
+        return builder.visit(Advice.to(FindBootstrapResource.class, cachedLocator).on(isStatic().and(named("findResource").and(returns(URL.class).and(takesArguments(String.class))))));
       }})
     .installOn(inst);
 
     j9.transform(new Transformer() {
       @Override
       public Builder<?> transform(final Builder<?> builder, final TypeDescription typeDescription, final ClassLoader classLoader, final JavaModule module) {
-        return builder.visit(Advice.to(FindBootstrapResources.class, cachedLocator).on(named("findResources").and(returns(Enumeration.class).and(takesArguments(1).and(takesArgument(0, String.class))))));
+        return builder.visit(Advice.to(FindBootstrapResources.class, cachedLocator).on(isStatic().and(named("findResources").and(returns(Enumeration.class).and(takesArguments(String.class))))));
       }})
     .installOn(inst);
 
@@ -116,7 +117,7 @@ public class BootLoaderAgent {
     instrumentation.transform(new Transformer() {
       @Override
       public Builder<?> transform(final Builder<?> builder, final TypeDescription typeDescription, final ClassLoader classLoader, final JavaModule module) {
-        return builder.visit(Advice.to(AppendToBootstrap.class, cachedLocator).on(named("appendToBootstrapClassLoaderSearch").and(takesArguments(1).and(takesArgument(0, JarFile.class)))));
+        return builder.visit(Advice.to(AppendToBootstrap.class, cachedLocator).on(named("appendToBootstrapClassLoaderSearch").and(takesArguments(JarFile.class))));
       }})
     .installOn(inst);
 
@@ -134,21 +135,18 @@ public class BootLoaderAgent {
     public static final Mutex mutex = new Mutex();
 
     @Advice.OnMethodExit
-    public static void exit(final @Advice.Argument(0) String name, @Advice.Return(readOnly=false, typing=Typing.DYNAMIC) URL returned) {
-      if (returned != null || jarFiles.size() == 0)
-        return;
-
+    public static void exit(final @Advice.Argument(0) String arg, @Advice.Return(readOnly=false, typing=Typing.DYNAMIC) URL returned) {
       final Set<String> visited;
-      if (!(visited = mutex.get()).add(name))
+      if (returned != null || !(visited = mutex.get()).add(arg))
         return;
 
       try {
         URL resource = null;
         for (final JarFile jarFile : jarFiles) {
-          final JarEntry entry = jarFile.getJarEntry(name);
+          final JarEntry entry = jarFile.getJarEntry(arg);
           if (entry != null) {
             try {
-              resource = new URL("jar:file:" + jarFile.getName() + "!/" + name);
+              resource = new URL("jar:file:" + jarFile.getName() + "!/" + arg);
               break;
             }
             catch (final MalformedURLException e) {
@@ -157,16 +155,14 @@ public class BootLoaderAgent {
           }
         }
 
-        if (resource != null) {
+        if (resource != null)
           returned = resource;
-          return;
-        }
       }
       catch (final Throwable t) {
         log("<><><><> BootLoaderAgent.FindBootstrapResource#exit", t, DefaultLevel.SEVERE);
       }
       finally {
-        visited.remove(name);
+        visited.remove(arg);
       }
     }
   }
@@ -175,39 +171,40 @@ public class BootLoaderAgent {
     public static final Mutex mutex = new Mutex();
 
     @Advice.OnMethodExit
-    public static void exit(final @Advice.Argument(0) String name, @Advice.Return(readOnly=false, typing=Typing.DYNAMIC) Enumeration<URL> returned) {
-      if (jarFiles.size() == 0)
-        return;
-
+    public static void exit(final @Advice.Argument(0) String arg, @Advice.Return(readOnly=false, typing=Typing.DYNAMIC) Enumeration<URL> returned) {
       final Set<String> visited = mutex.get();
-      if (!visited.add(name))
+      if (!visited.add(arg))
         return;
 
       try {
+        if (jarFiles.size() == 0)
+          return;
+
         final List<URL> resources = new ArrayList<>();
         for (final JarFile jarFile : jarFiles) {
-          final JarEntry entry = jarFile.getJarEntry(name);
+          final JarEntry entry = jarFile.getJarEntry(arg);
           if (entry == null)
             continue;
 
           try {
-            resources.add(new URL("jar:file:" + jarFile.getName() + "!/" + name));
+            resources.add(new URL("jar:file:" + jarFile.getName() + "!/" + arg));
           }
           catch (final MalformedURLException e) {
             throw new UnsupportedOperationException(e);
           }
         }
 
-        if (resources.size() != 0) {
-          final Enumeration<URL> enumeration = Collections.enumeration(resources);
-          returned = returned == null ? enumeration : new CompoundEnumeration<>(returned, enumeration);
-        }
+        if (resources.size() == 0)
+          return;
+
+        final Enumeration<URL> enumeration = Collections.enumeration(resources);
+        returned = returned == null ? enumeration : new CompoundEnumeration<>(returned, enumeration);
       }
       catch (final Throwable t) {
         log("<><><><> BootLoaderAgent.FindBootstrapResources#exit", t, DefaultLevel.SEVERE);
       }
       finally {
-        visited.remove(name);
+        visited.remove(arg);
       }
     }
   }

@@ -17,14 +17,11 @@ package io.opentracing.contrib.specialagent;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Writer;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -32,6 +29,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.handler.ArtifactHandler;
 import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Execute;
@@ -39,8 +37,11 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.apache.maven.plugins.dependency.tree.TGFDependencyNodeVisitor;
 import org.apache.maven.plugins.dependency.tree.TreeMojo;
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.ProjectBuildingRequest;
+import org.apache.maven.shared.dependency.graph.DependencyGraphBuilder;
+import org.apache.maven.shared.dependency.graph.DependencyGraphBuilderException;
 import org.apache.maven.shared.dependency.graph.DependencyNode;
 import org.apache.maven.shared.dependency.graph.internal.DefaultDependencyNode;
 import org.apache.maven.shared.dependency.graph.traversal.DependencyNodeVisitor;
@@ -140,13 +141,7 @@ public final class FingerprintMojo extends TreeMojo {
     }
   }
 
-  private class Foo implements DependencyNodeVisitor {
-    private DependencyNodeVisitor target;
-
-    private Foo(final DependencyNodeVisitor target) {
-      this.target = target;
-    }
-
+  private final DependencyNodeVisitor filterVisitor = new DependencyNodeVisitor() {
     @Override
     public boolean visit(final DependencyNode node) {
       final List<DependencyNode> children = new ArrayList<>(node.getChildren());
@@ -155,48 +150,51 @@ public final class FingerprintMojo extends TreeMojo {
         final DependencyNode child = iterator.next();
         final Artifact artifact = child.getArtifact();
         if ("io.opentracing".equals(artifact.getGroupId())) {
-          if (apiVersion != null && !apiVersion.equals(artifact.getVersion()))
+          if (!apiVersion.equals(artifact.getVersion()))
             getLog().warn("OT API version (" + apiVersion + ") in SpecialAgent differs from OT API version (" + apiVersion + ") in plugin");
 
           if ("compile".equals(artifact.getScope())) {
-//            getLog().warn("Removing dependency provided by SpecialAgent: " + artifact);
-//            iterator.remove();
+            getLog().warn("Removing dependency provided by SpecialAgent: " + artifact);
+            iterator.remove();
           }
         }
         else if ("compile".equals(artifact.getScope()) && !getProject().getDependencyArtifacts().contains(artifact)) {
-//          getLog().warn("Including dependency for plugin: " + artifact);
+          getLog().warn("Including dependency for plugin: " + artifact);
         }
       }
 
       if (children.size() < node.getChildren().size())
         ((DefaultDependencyNode)node).setChildren(children);
 
-      final DependencyNode parent = node.getParent();
-      if (parent == null || parent.getOptional() == null || !parent.getOptional() || !"provided".equals(parent.getArtifact().getScope()))
-        return target.visit(node);
-
-      return false;
+      return true;
     }
 
     @Override
     public boolean endVisit(final DependencyNode node) {
-      return target.endVisit(node);
+      return true;
     }
-  }
-
-  @Override
-  public DependencyNodeVisitor getSerializingDependencyNodeVisitor(final Writer writer) {
-    final DependencyNodeVisitor visitor = super.getSerializingDependencyNodeVisitor(writer);
-    if (!(visitor instanceof TGFDependencyNodeVisitor))
-      return visitor;
-
-    return new Foo(visitor);
-  }
+  };
 
   private void createDependenciesTgf() throws MojoExecutionException, MojoFailureException {
     getLog().info("--> dependencies.tgf <--");
     setField(TreeMojo.class, "outputType", "tgf");
     setField(TreeMojo.class, "outputFile", new File(getProject().getBuild().getOutputDirectory(), "dependencies.tgf"));
+    final DependencyGraphBuilder builder = (DependencyGraphBuilder)getField(TreeMojo.class, "dependencyGraphBuilder");
+    setField(TreeMojo.class, "dependencyGraphBuilder", new DependencyGraphBuilder() {
+      @Override
+      public DependencyNode buildDependencyGraph(final ProjectBuildingRequest buildingRequest, final ArtifactFilter filter) throws DependencyGraphBuilderException {
+        final DependencyNode node = builder.buildDependencyGraph(buildingRequest, filter);
+        node.accept(filterVisitor);
+        return node;
+      }
+
+      @Override
+      public DependencyNode buildDependencyGraph(final ProjectBuildingRequest buildingRequest, final ArtifactFilter filter, final Collection<MavenProject> reactorProjects) throws DependencyGraphBuilderException {
+        final DependencyNode node = builder.buildDependencyGraph(buildingRequest, filter, reactorProjects);
+        node.accept(filterVisitor);
+        return node;
+      }
+    });
     super.execute();
   }
 
@@ -205,22 +203,18 @@ public final class FingerprintMojo extends TreeMojo {
     final File destFile = new File(getProject().getBuild().getOutputDirectory(), UtilConstants.FINGERPRINT_FILE);
     destFile.getParentFile().mkdirs();
 
-    // The `ruleDeps` represent the Instrumentation Plugin (this is the dependency(ies)
+    // The `compileDeps` represent the Instrumentation Plugin (this is the dependency(ies)
     // that bridges/links between the 3rd-Party Library to the Instrumentation Rule).
-    final URL[] ruleDeps = getDependencyPaths(localRepository, "compile", true, getProject().getArtifacts().iterator(), 1);
+    final URL[] compileDeps = getDependencyPaths(localRepository, "compile", false, getProject().getArtifacts().iterator(), 1);
     // Include the compile path of the Instrumentation Rule itself, which solves the use-
     // case where there is no Instrumentation Plugin (i.e. the Instrumentation Rule directly
     // bridges/links between the 3rd-Party Library to itself).
-    ruleDeps[0] = AssembleUtil.toURL(new File(getProject().getBuild().getOutputDirectory()));
-    if (getLog().isDebugEnabled())
-      getLog().debug("ruleDeps: " + Arrays.toString(ruleDeps));
+    compileDeps[0] = AssembleUtil.toURL(new File(getProject().getBuild().getOutputDirectory()));
 
-    // The `libDeps` represent the 3rd-Party Library that is being instrumented
-    final URL[] libDeps = getDependencyPaths(localRepository, "provided", true, getProject().getArtifacts().iterator(), 0);
-    if (getLog().isDebugEnabled())
-      getLog().debug("libDeps: " + Arrays.toString(libDeps));
+    // The `optionalDeps` represent the 3rd-Party Library that is being instrumented
+    final URL[] optionalDeps = getDependencyPaths(localRepository, null, true, getProject().getArtifacts().iterator(), 0);
 
-    try (final URLClassLoader classLoader = new URLClassLoader(ruleDeps, new URLClassLoader(libDeps != null ? libDeps : new URL[0], null))) {
+    try (final URLClassLoader classLoader = new URLClassLoader(compileDeps, new URLClassLoader(optionalDeps != null ? optionalDeps : new URL[0], null))) {
       final LibraryFingerprint fingerprint = new LibraryFingerprint(classLoader, presents, absents, new MavenLogger(getLog()));
       fingerprint.toFile(destFile);
       if (getLog().isDebugEnabled())
@@ -232,21 +226,8 @@ public final class FingerprintMojo extends TreeMojo {
     final String pluginName = "sa.rule.name." + name;
     getLog().info("--> " + pluginName + " <--");
     final File nameFile = new File(getProject().getBuild().getOutputDirectory(), pluginName);
-    for (final Artifact artifact : getProject().getDependencyArtifacts()) {
-      final String adapterClassName = AssembleUtil.readFileFromJar(artifact.getFile(), "META-INF/services/io.opentracing.contrib.specialagent.Adapter");
-      if (adapterClassName != null) {
-        final String[] lines = adapterClassName.split("\n");
-        for (String line : lines) {
-          line = line.trim();
-          if (line.length() > 0 && line.charAt(0) != '#') {
-            Files.write(nameFile.toPath(), line.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-            return;
-          }
-        }
-      }
-    }
-
-    throw new MojoExecutionException("Dependency with adapter implementation was not found");
+    if (!nameFile.exists() && !nameFile.createNewFile())
+      throw new MojoExecutionException("Unable to create file: " + nameFile.getAbsolutePath());
   }
 
   private String apiVersion;
