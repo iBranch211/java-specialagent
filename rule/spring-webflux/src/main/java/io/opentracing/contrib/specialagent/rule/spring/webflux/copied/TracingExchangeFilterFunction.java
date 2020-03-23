@@ -15,15 +15,14 @@
  */
 package io.opentracing.contrib.specialagent.rule.spring.webflux.copied;
 
-import java.util.List;
-
+import io.opentracing.Tracer;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.ExchangeFunction;
-
-import io.opentracing.Tracer;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 /**
  * Similar to {@code TraceExchangeFilterFunction} from spring-cloud-sleuth-core.

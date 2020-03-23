@@ -15,15 +15,15 @@
 
 package io.opentracing.contrib.specialagent.rule.mule4.module.artifact;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import static org.slf4j.LoggerFactory.*;
 
 import org.mule.runtime.module.artifact.api.classloader.FineGrainedControlClassLoader;
 import org.mule.runtime.module.artifact.api.classloader.LookupStrategy;
+import org.slf4j.Logger;
 
 public class FineGrainedControlAgentIntercept {
   private static final String CLS_SFX = ".class";
-  private static final Logger logger = Logger.getLogger(FilteringArtifactAgentIntercept.class.getName());
+  private static final Logger logger = getLogger(FineGrainedControlAgentIntercept.class);
 
   public static Object exit(final Object thiz, final Object returned, final Object resObj) {
     final String resName = (String)resObj;
@@ -52,8 +52,7 @@ public class FineGrainedControlAgentIntercept {
         if (result != null)
           return result;
 
-        if (logger.isLoggable(Level.FINE))
-          logger.fine("Could not locate resource " + resName + " with strategy " + lookupStrategy + " in " + thiz);
+        logger.debug("Could not locate resource {} with strategy {} in {}.", resName, lookupStrategy, thiz);
       }
     }
 

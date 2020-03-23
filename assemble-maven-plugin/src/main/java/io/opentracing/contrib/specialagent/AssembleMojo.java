@@ -28,7 +28,6 @@ import java.util.zip.ZipFile;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -42,7 +41,7 @@ import org.apache.maven.plugins.dependency.utils.DependencyStatusSets;
 @Execute(goal = "assemble")
 public final class AssembleMojo extends ResolveDependenciesMojo {
   private static final String pluginsDestDir = "dependencies/" + UtilConstants.META_INF_PLUGIN_PATH;
-  private static final String isoDestDir = "dependencies/" + UtilConstants.META_INF_ISO_PATH;
+  private static final String extDestDir = "dependencies/" + UtilConstants.META_INF_ISO_PATH;
   private static final String declarationScopeOfInstrumentationPlugins = "provided";
 
   @Parameter(defaultValue = "${localRepository}")
@@ -67,8 +66,8 @@ public final class AssembleMojo extends ResolveDependenciesMojo {
       final File pluginsPath = new File(getProject().getBuild().getDirectory(), pluginsDestDir);
       pluginsPath.mkdirs();
 
-      final File isoPath = new File(getProject().getBuild().getDirectory(), isoDestDir);
-      isoPath.mkdirs();
+      final File extPath = new File(getProject().getBuild().getDirectory(), extDestDir);
+      extPath.mkdirs();
 
       final DependencyStatusSets dependencies = getDependencySets(false, false);
       final Set<Artifact> artifacts = dependencies.getResolvedDependencies();
@@ -79,9 +78,8 @@ public final class AssembleMojo extends ResolveDependenciesMojo {
         if (getLog().isDebugEnabled())
           getLog().debug("Assembling artifact: " + artifact.toString());
 
-        final Dependency dependency = AssembleUtil.getDependency(artifact.toString(), declarationScopeOfInstrumentationPlugins);
-        if (dependency != null) {
-          File jarFile = new File(MavenUtil.getPathOf(null, dependency));
+        File jarFile = AssembleUtil.getFileForDependency(artifact.toString(), declarationScopeOfInstrumentationPlugins);
+        if (jarFile != null) {
           jarFile = new File(localRepository.getBasedir(), jarFile.getPath());
           String dependenciesTgf = null;
           try (final ZipFile zipFile = new ZipFile(jarFile)) {
@@ -98,10 +96,6 @@ public final class AssembleMojo extends ResolveDependenciesMojo {
           }
 
           if (dependenciesTgf != null) {
-            if (!artifact.isOptional())
-              throw new MojoExecutionException("Rule " + artifact + " should be <optional>true</optional>");
-
-            // FIXME: Add test to make sure sa.rule.name. file exists and associates an adapter
             copyDependencies(dependenciesTgf, pluginsPath);
           }
           else if (AssembleUtil.hasFileInJar(jarFile, "META-INF/services/io.opentracing.contrib.tracerresolver.TracerFactory") || AssembleUtil.hasFileInJar(jarFile, "META-INF/maven/io.opentracing.contrib/opentracing-tracerresolver/pom.xml")) {
@@ -116,8 +110,8 @@ public final class AssembleMojo extends ResolveDependenciesMojo {
 
             fileCopy(jarFile, new File(pluginsPath, pluginName));
           }
-          else if (!artifact.isOptional()) {
-            fileCopy(jarFile, new File(isoPath, jarFile.getName()));
+          else if (artifact.isOptional()) {
+            fileCopy(jarFile, new File(extPath, jarFile.getName()));
           }
           else if (getLog().isDebugEnabled()) {
             getLog().debug("Skipping artifact [selector]: " + artifact.toString());
