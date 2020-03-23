@@ -17,13 +17,14 @@ package io.opentracing.contrib.specialagent;
 
 import static org.junit.Assert.*;
 
+import org.apache.maven.artifact.Artifact;
 import org.junit.Test;
 
 public class SpecialAgentMojoTest {
   @Test
   public void test() {
     try {
-      MavenUtil.getPathOf(null, null);
+      MavenUtil.getPathOf(null, (Artifact)null);
       fail("Expected NullPointerException");
     }
     catch (final NullPointerException e) {
