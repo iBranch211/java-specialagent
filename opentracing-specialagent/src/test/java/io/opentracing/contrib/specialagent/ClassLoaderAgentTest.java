@@ -35,7 +35,7 @@ import io.opentracing.Tracer;
  * @author Seva Safris
  */
 public abstract class ClassLoaderAgentTest {
-  private static final Instrumentation inst = AgentRunnerBootstrap.install(null);
+  private static final Instrumentation inst = AgentRunner.install();
 
   static {
     try {
@@ -59,18 +59,9 @@ public abstract class ClassLoaderAgentTest {
   }
 
   @Test
-  public void testClassForName() throws Exception {
+  public void testClassLoaderFindClass() throws Exception {
     try (final URLClassLoader classLoader = new URLClassLoader(new URL[0], null)) {
       final Class<?> cls = Class.forName(Tracer.class.getName(), false, classLoader);
-      assertNotNull(cls);
-      assertEquals(Tracer.class.getName(), cls.getName());
-    }
-  }
-
-  @Test
-  public void testClassLoaderLoadClass() throws Exception {
-    try (final URLClassLoader classLoader = new URLClassLoader(new URL[0], null)) {
-      final Class<?> cls = classLoader.loadClass(Tracer.class.getName());
       assertNotNull(cls);
       assertEquals(Tracer.class.getName(), cls.getName());
     }

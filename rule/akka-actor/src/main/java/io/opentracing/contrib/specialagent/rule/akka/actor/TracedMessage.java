@@ -15,11 +15,10 @@
 
 package io.opentracing.contrib.specialagent.rule.akka.actor;
 
-import java.util.Map;
-
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.propagation.Format;
+import java.util.Map;
 
 public class TracedMessage<T> {
   private T message;
