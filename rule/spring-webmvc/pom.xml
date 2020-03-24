@@ -26,6 +26,8 @@
   <artifactId>spring-webmvc</artifactId>
   <name>SpecialAgent Rule for Spring Web MVC</name>
   <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
     <version.spring>3.0.2.RELEASE</version.spring>
     <version.jetty>9.3.15.v20161220</version.jetty>
     <sa.rule.name>spring:webmvc</sa.rule.name>
@@ -35,30 +37,35 @@
       <groupId>org.springframework</groupId>
       <artifactId>spring-webmvc</artifactId>
       <version>${version.spring}</version>
+      <optional>true</optional>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.opentracing.contrib</groupId>
       <artifactId>opentracing-web-servlet-filter</artifactId>
       <version>0.4.0</version>
+      <optional>true</optional>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
       <version>${version.jetty}</version>
+      <optional>true</optional>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-servlet</artifactId>
       <version>${version.jetty}</version>
+      <optional>true</optional>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-webapp</artifactId>
       <version>${version.jetty}</version>
+      <optional>true</optional>
       <scope>test</scope>
     </dependency>
   </dependencies>

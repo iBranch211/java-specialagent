@@ -16,14 +16,16 @@
 package io.opentracing.contrib.specialagent.test.cxf;
 
 import java.util.List;
+
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+
 import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
+
 import io.opentracing.Tracer;
 import io.opentracing.contrib.specialagent.TestUtil;
-import io.opentracing.contrib.specialagent.test.cxf.interceptors.AbstractSpanTagInterceptor;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockSpan.LogEntry;
 import io.opentracing.mock.MockTracer;
@@ -33,13 +35,6 @@ public class CXFITest {
   private static final String BASE_URI = "http://127.0.0.1:48080";
 
   public static void main(final String[] args) {
-    System.setProperty("sa.instrumentation.plugin.cxf.interceptors.client.in",
-        "io.opentracing.contrib.specialagent.test.cxf.interceptors.ClientSpanTagInterceptor");
-    System.setProperty("sa.instrumentation.plugin.cxf.interceptors.server.out",
-        "io.opentracing.contrib.specialagent.test.cxf.interceptors.ServerSpanTagInterceptor");
-    System.setProperty("sa.instrumentation.plugin.cxf.interceptors.classpath",
-        "taget/test-classes");
-
     final String msg = "hello";
 
     final JAXRSServerFactoryBean serverFactory = new JAXRSServerFactoryBean();
@@ -56,24 +51,9 @@ public class CXFITest {
 
     // CXF Tracing span has no "component" tag, cannot use TestUtil.checkSpan()
     checkSpans(2);
-    checkTag();
 
     server.destroy();
     serverFactory.getBus().shutdown(true);
-  }
-
-  private static void checkTag() {
-    final Tracer tracer = TestUtil.getGlobalTracer();
-    if (tracer instanceof MockTracer) {
-      final MockTracer mockTracer = (MockTracer) tracer;
-      final List<MockSpan> spans = mockTracer.finishedSpans();
-      for (final MockSpan span : spans) {
-        if (!AbstractSpanTagInterceptor.SPAN_TAG_VALUE
-            .equals(span.tags().get(AbstractSpanTagInterceptor.SPAN_TAG_KEY))) {
-          throw new AssertionError("no costomized tag");
-        }
-      }
-    }
   }
 
   private static void checkSpans(int counts) {
