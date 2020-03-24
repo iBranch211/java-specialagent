@@ -54,7 +54,7 @@ public class KafkaStreamsAgentRule extends AgentRule {
   public static class NextRecord {
     @Advice.OnMethodExit
     public static void exit(final @Advice.Origin String origin, final @Advice.Return Object returned) {
-      if (isEnabled(KafkaStreamsAgentRule.class.getName(), origin))
+      if (isEnabled("KafkaStreamsAgentRule", origin))
         KafkaStreamsAgentIntercept.onNextRecordExit(returned);
     }
   }
@@ -62,7 +62,7 @@ public class KafkaStreamsAgentRule extends AgentRule {
   public static class Process {
     @Advice.OnMethodExit(onThrowable = Throwable.class)
     public static void exit(final @Advice.Origin String origin, final @Advice.Thrown Throwable thrown) {
-      if (isEnabled(KafkaStreamsAgentRule.class.getName(), origin))
+      if (isEnabled("KafkaStreamsAgentRule", origin))
          KafkaStreamsAgentIntercept.onProcessExit(thrown);
     }
   }
@@ -70,7 +70,7 @@ public class KafkaStreamsAgentRule extends AgentRule {
   public static class Deserialize {
     @Advice.OnMethodExit
     public static void exit(final @Advice.Origin String origin, final @Advice.Return Object returned, final @Advice.Argument(value = 1) Object record) {
-      if (isEnabled(KafkaStreamsAgentRule.class.getName(), origin))
+      if (isEnabled("KafkaStreamsAgentRule", origin))
         KafkaStreamsAgentIntercept.onDeserializeExit(returned, record);
     }
   }

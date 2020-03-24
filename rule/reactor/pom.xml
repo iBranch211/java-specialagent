@@ -38,14 +38,13 @@
       <groupId>io.opentracing.contrib</groupId>
       <artifactId>opentracing-reactor</artifactId>
       <version>0.1.2</version>
-      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>io.projectreactor</groupId>
       <artifactId>reactor-core</artifactId>
       <version>${min.version}</version>
-      <optional>true</optional>
       <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
   </dependencies>
 </project>

@@ -36,7 +36,7 @@
     <plugins>
       <plugin>
         <groupId>io.opentracing.contrib.specialagent</groupId>
-        <artifactId>specialagent-maven-plugin</artifactId>
+        <artifactId>agentrule-maven-plugin</artifactId>
         <configuration>
           <presents>
             <present>org.springframework.web.servlet.resource.HttpResource</present>
@@ -50,42 +50,37 @@
       <groupId>org.springframework</groupId>
       <artifactId>spring-webmvc</artifactId>
       <version>${min.version}</version>
-      <optional>true</optional>
       <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>io.opentracing.contrib</groupId>
       <artifactId>opentracing-web-servlet-filter</artifactId>
       <version>0.4.0</version>
-      <optional>true</optional>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
       <version>${version.jetty}</version>
-      <optional>true</optional>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-servlet</artifactId>
       <version>${version.jetty}</version>
-      <optional>true</optional>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-webapp</artifactId>
       <version>${version.jetty}</version>
-      <optional>true</optional>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-test</artifactId>
       <version>2.1.4.RELEASE</version>
-      <optional>true</optional>
       <scope>test</scope>
     </dependency>
 
@@ -98,8 +93,8 @@
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
       <version>2.3</version>
-      <optional>true</optional>
       <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
   </dependencies>
 </project>
