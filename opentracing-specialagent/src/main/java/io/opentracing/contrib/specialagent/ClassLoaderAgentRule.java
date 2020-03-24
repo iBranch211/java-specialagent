@@ -25,8 +25,10 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
 
+import io.opentracing.contrib.specialagent.BootLoaderAgent.Mutex;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.AgentBuilder.Identified.Extendable;
+import net.bytebuddy.agent.builder.AgentBuilder.Identified.Narrowable;
 import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
@@ -51,8 +53,9 @@ public class ClassLoaderAgentRule extends DefaultAgentRule {
     log("\n<<<<<<<<<<<<<<<<< Installing ClassLoaderAgent >>>>>>>>>>>>>>>>>>\n", null, DefaultLevel.FINE);
 
 //    final Narrowable narrowable = builder.type(isSubTypeOf(ClassLoader.class).and(not(nameStartsWith(RuleClassLoader.class.getName()))).and(not(nameStartsWith(PluginsClassLoader.class.getName()))));
+    final Narrowable narrowable = builder.type(isSubTypeOf(ClassLoader.class));
     final List<Extendable> builders = Arrays.asList(
-      builder.type(isSubTypeOf(ClassLoader.class)).transform(new Transformer() {
+      narrowable.transform(new Transformer() {
         @Override
         public Builder<?> transform(final Builder<?> builder, final TypeDescription typeDescription, final ClassLoader classLoader, final JavaModule module) {
           return builder
@@ -68,7 +71,7 @@ public class ClassLoaderAgentRule extends DefaultAgentRule {
 
   public static boolean isExcluded(final ClassLoader thiz) {
     final String className = thiz.getClass().getName();
-    return className.startsWith("io.opentracing.contrib.specialagent.RuleClassLoader") || className.startsWith("io.opentracing.contrib.specialagent.PluginsClassLoader") || className.startsWith("io.opentracing.contrib.specialagent.AgentRunnerClassLoader") || className.startsWith("io.opentracing.contrib.specialagent.IsoClassLoader");
+    return className.startsWith("io.opentracing.contrib.specialagent.RuleClassLoader") || className.startsWith("io.opentracing.contrib.specialagent.PluginsClassLoader");
   }
 
   public static class DefineClass {
@@ -80,17 +83,17 @@ public class ClassLoaderAgentRule extends DefaultAgentRule {
   }
 
   public static class LoadClass {
-    public static final BootLoaderAgent.Mutex mutex = new BootLoaderAgent.Mutex();
+    public static final Mutex mutex = new Mutex();
     public static Method defineClass;
 
     @SuppressWarnings("unused")
     @Advice.OnMethodExit(onThrowable = ClassNotFoundException.class)
     public static void exit(final @Advice.This ClassLoader thiz, final @Advice.Argument(0) String name, @Advice.Return(readOnly=false, typing=Typing.DYNAMIC) Class<?> returned, @Advice.Thrown(readOnly = false, typing = Typing.DYNAMIC) ClassNotFoundException thrown) {
-      if (returned != null || isExcluded(thiz))
+      if (isExcluded(thiz))
         return;
 
       final Set<String> visited;
-      if (!(visited = mutex.get()).add(name))
+      if (returned != null || !(visited = mutex.get()).add(name))
         return;
 
       try {
@@ -102,15 +105,6 @@ public class ClassLoaderAgentRule extends DefaultAgentRule {
           thrown = null;
           return;
         }
-
-//        if (SpecialAgent.isoClassLoader != null && name.startsWith("io.opentracing.")) {
-//          final Class<?> isoClass = SpecialAgent.isoClassLoader.loadClassOrNull(name);
-//          if (isoClass != null) {
-//            returned = isoClass;
-//            thrown = null;
-//            return;
-//          }
-//        }
 
         final byte[] bytecode = SpecialAgent.findClass(thiz, name);
         if (bytecode == null)
@@ -134,31 +128,21 @@ public class ClassLoaderAgentRule extends DefaultAgentRule {
   }
 
   public static class FindResource {
-    public static final BootLoaderAgent.Mutex mutex = new BootLoaderAgent.Mutex();
+    public static final Mutex mutex = new Mutex();
 
     @Advice.OnMethodExit
     public static void exit(final @Advice.This ClassLoader thiz, final @Advice.Argument(0) String name, @Advice.Return(readOnly=false, typing=Typing.DYNAMIC) URL returned) {
-      if (returned != null || isExcluded(thiz))
+      if (isExcluded(thiz))
         return;
 
       final Set<String> visited;
-      if (!(visited = mutex.get()).add(name))
+      if (returned != null || !(visited = mutex.get()).add(name))
         return;
 
       try {
         final URL resource = SpecialAgent.findResource(thiz, name);
-        if (resource != null) {
+        if (resource != null)
           returned = resource;
-          return;
-        }
-
-//        if (SpecialAgent.isoClassLoader != null && name.startsWith("io.opentracing.")) {
-//          final URL isoResource = SpecialAgent.isoClassLoader.getResource(name);
-//          if (isoResource != null) {
-//            returned = isoResource;
-//            return;
-//          }
-//        }
       }
       catch (final Throwable t) {
         log("<><><><> ClassLoaderAgent.FindResource#exit", t, DefaultLevel.SEVERE);
@@ -170,7 +154,7 @@ public class ClassLoaderAgentRule extends DefaultAgentRule {
   }
 
   public static class FindResources {
-    public static final BootLoaderAgent.Mutex mutex = new BootLoaderAgent.Mutex();
+    public static final Mutex mutex = new Mutex();
 
     @Advice.OnMethodExit
     public static void exit(final @Advice.This ClassLoader thiz, final @Advice.Argument(0) String name, @Advice.Return(readOnly=false, typing=Typing.DYNAMIC) Enumeration<URL> returned) {
@@ -183,14 +167,10 @@ public class ClassLoaderAgentRule extends DefaultAgentRule {
 
       try {
         final Enumeration<URL> resources = SpecialAgent.findResources(thiz, name);
-        if (resources != null)
-          returned = returned == null ? resources : new CompoundEnumeration<>(returned, resources);
+        if (resources == null)
+          return;
 
-//        if (SpecialAgent.isoClassLoader != null && name.startsWith("io.opentracing.")) {
-//          final Enumeration<URL> isoResources = SpecialAgent.isoClassLoader.getResources(name);
-//          if (isoResources != null)
-//            returned = returned == null ? isoResources : new CompoundEnumeration<>(returned, isoResources);
-//        }
+        returned = returned == null ? resources : new CompoundEnumeration<>(returned, resources);
       }
       catch (final Throwable t) {
         log("<><><><> ClassLoaderAgent.FindResources#exit", t, DefaultLevel.SEVERE);

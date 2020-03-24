@@ -22,7 +22,7 @@ import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpResponse;
 
 import io.opentracing.Span;
-import io.opentracing.contrib.specialagent.OpenTracingApiUtil;
+import io.opentracing.contrib.specialagent.AgentRuleUtil;
 import io.opentracing.tag.Tags;
 
 /**
@@ -97,7 +97,7 @@ public interface RestTemplateSpanDecorator {
 
     @Override
     public void onError(HttpRequest httpRequest, Throwable ex, Span span) {
-      OpenTracingApiUtil.setErrorTag(span, ex);
+      AgentRuleUtil.setErrorTag(span, ex);
     }
   }
 }
