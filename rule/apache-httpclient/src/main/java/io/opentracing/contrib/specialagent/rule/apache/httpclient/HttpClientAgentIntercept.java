@@ -15,10 +15,14 @@
 
 package io.opentracing.contrib.specialagent.rule.apache.httpclient;
 
+import java.net.URI;
+import java.util.HashMap;
+
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpUriRequest;
 
 import io.opentracing.Span;
 import io.opentracing.Tracer;
@@ -41,7 +45,7 @@ public class HttpClientAgentIntercept {
       // request signature and AWS SDK gets traced by the aws-sdk rule
       return null;
     }
-    
+
     final LocalSpanContext context = LocalSpanContext.get();
     if (context != null) {
       context.increment();
@@ -54,12 +58,17 @@ public class HttpClientAgentIntercept {
       .withTag(Tags.COMPONENT, COMPONENT_NAME)
       .withTag(Tags.HTTP_METHOD, request.getRequestLine().getMethod())
       .withTag(Tags.HTTP_URL, request.getRequestLine().getUri()).start();
-    
-    for (ApacheClientSpanDecorator decorator : Configuration.spanDecorators) {
-      decorator.onRequest(request, arg0 instanceof HttpHost ? (HttpHost)arg0 : null, span);
-    }
 
     LocalSpanContext.set(span, null);
+
+    if (request instanceof HttpUriRequest) {
+      final URI uri = ((HttpUriRequest)request).getURI();
+      setPeerHostPort(span, uri.getHost(), uri.getPort());
+    }
+    else if (arg0 instanceof HttpHost) {
+      final HttpHost httpHost = (HttpHost)arg0;
+      setPeerHostPort(span, httpHost.getHostName(), httpHost.getPort());
+    }
 
     tracer.inject(span.context(), Builtin.HTTP_HEADERS, new HttpHeadersInjectAdapter(request));
     if (arg1 instanceof ResponseHandler)
@@ -69,6 +78,12 @@ public class HttpClientAgentIntercept {
       return new Object[] {null, WrapperProxy.wrap(arg2, new TracingResponseHandler<>((ResponseHandler<?>)arg2, span))};
 
     return null;
+  }
+
+  private static void setPeerHostPort(final Span span, final String host, final int port) {
+    span.setTag(Tags.PEER_HOSTNAME, host);
+    if (port != -1)
+      span.setTag(Tags.PEER_PORT, port);
   }
 
   public static void exit(final Object returned) {
@@ -81,9 +96,7 @@ public class HttpClientAgentIntercept {
 
     if (returned instanceof HttpResponse) {
       final HttpResponse response = (HttpResponse)returned;
-      for (ApacheClientSpanDecorator decorator : Configuration.spanDecorators) {
-        decorator.onResponse(response, context.getSpan());
-      }
+      Tags.HTTP_STATUS.set(context.getSpan(), response.getStatusLine().getStatusCode());
     }
 
     context.closeAndFinish();
@@ -97,9 +110,11 @@ public class HttpClientAgentIntercept {
     if (context.decrementAndGet() != 0)
       return;
 
-    for (ApacheClientSpanDecorator decorator : Configuration.spanDecorators) {
-      decorator.onError(thrown, context.getSpan());
-    }
+    final HashMap<String,Object> errorLogs = new HashMap<>(2);
+    errorLogs.put("event", Tags.ERROR.getKey());
+    errorLogs.put("error.object", thrown);
+    context.getSpan().setTag(Tags.ERROR, Boolean.TRUE);
+    context.getSpan().log(errorLogs);
     context.closeAndFinish();
   }
 }
