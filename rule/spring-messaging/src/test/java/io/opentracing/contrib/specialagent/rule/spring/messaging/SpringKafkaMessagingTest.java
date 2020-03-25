@@ -22,7 +22,6 @@ import static org.hamcrest.Matchers.*;
 
 import java.util.List;
 
-import java.util.concurrent.Callable;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -60,12 +59,7 @@ public class SpringKafkaMessagingTest {
 
       sender.send("Ping");
 
-      await().atMost(5, SECONDS).until(new Callable<List<String>>() {
-        @Override
-        public List<String> call() throws Exception {
-          return receiver.getReceivedMessages();
-        }
-      }, hasSize(1));
+      await().atMost(5, SECONDS).until(receiver::getReceivedMessages, hasSize(1));
     }
 
     final List<MockSpan> finishedSpans = tracer.finishedSpans();
@@ -89,10 +83,11 @@ public class SpringKafkaMessagingTest {
   }
 
   private static MockSpan getSpanByOperation(final String operationName, final MockTracer tracer) {
-    for (final MockSpan span : tracer.finishedSpans())
-      if (operationName.equals(span.operationName()))
-        return span;
-
-    throw new RuntimeException(String.format("Span for operation '%s' doesn't exist", operationName));
+    return tracer
+      .finishedSpans()
+      .stream()
+      .filter(s -> operationName.equals(s.operationName()))
+      .findAny()
+      .orElseThrow(() -> new RuntimeException(String.format("Span for operation '%s' doesn't exist", operationName)));
   }
 }
