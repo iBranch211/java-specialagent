@@ -13,12 +13,11 @@
  */
 package io.opentracing.contrib.specialagent.rule.spring.web5.copied;
 
-import java.util.Iterator;
-import java.util.Map;
-
+import io.opentracing.propagation.TextMap;
 import org.springframework.http.HttpHeaders;
 
-import io.opentracing.propagation.TextMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author Pavol Loffay

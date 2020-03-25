@@ -42,7 +42,7 @@ public class SpringMessagingAgentRule extends AgentRule {
 
   @Advice.OnMethodEnter
   public static void enter(final @Advice.Origin String origin, final @Advice.This Object thiz) {
-    if (isEnabled(SpringMessagingAgentRule.class.getName(), origin))
+    if (isEnabled("SpringMessagingAgentRule", origin))
       SpringMessagingAgentIntercept.enter(thiz);
   }
 }

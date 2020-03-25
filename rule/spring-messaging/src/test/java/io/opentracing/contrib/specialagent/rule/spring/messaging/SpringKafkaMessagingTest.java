@@ -89,9 +89,10 @@ public class SpringKafkaMessagingTest {
   }
 
   private static MockSpan getSpanByOperation(final String operationName, final MockTracer tracer) {
-    for (final MockSpan span : tracer.finishedSpans())
-      if (operationName.equals(span.operationName()))
+    for (MockSpan span : tracer.finishedSpans()) {
+      if(operationName.equals(span.operationName()))
         return span;
+    }
 
     throw new RuntimeException(String.format("Span for operation '%s' doesn't exist", operationName));
   }
