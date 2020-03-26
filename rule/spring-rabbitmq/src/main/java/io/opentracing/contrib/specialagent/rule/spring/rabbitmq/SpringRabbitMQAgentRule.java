@@ -47,26 +47,26 @@ public class SpringRabbitMQAgentRule extends AgentRule {
   public static class Consumer {
     @Advice.OnMethodEnter
     public static void enter(final @Advice.Origin String origin, final @Advice.This Object thiz, final @Advice.Argument(value = 2) Object properties) {
-      if (isEnabled(SpringRabbitMQAgentRule.class.getName(), origin))
+      if (isEnabled("SpringRabbitMQAgentRule", origin))
         SpringRabbitMQAgentIntercept.handleDeliveryStart(thiz, properties);
     }
 
     @Advice.OnMethodExit(onThrowable = Throwable.class)
     public static void exit(final @Advice.Origin String origin, final @Advice.Thrown Throwable thrown) {
-      if (isEnabled(SpringRabbitMQAgentRule.class.getName(), origin))
+      if (isEnabled("SpringRabbitMQAgentRule", origin))
         SpringRabbitMQAgentIntercept.handleDeliveryEnd(thrown);
     }
   }
 
   @Advice.OnMethodEnter
   public static void enter(final @Advice.Origin String origin, final @Advice.Argument(value = 0) Object message) {
-    if (isEnabled(SpringRabbitMQAgentRule.class.getName(), origin))
+    if (isEnabled("SpringRabbitMQAgentRule", origin))
       SpringRabbitMQAgentIntercept.onMessageEnter(message);
   }
 
   @Advice.OnMethodExit(onThrowable = Throwable.class)
   public static void exit(final @Advice.Origin String origin, final @Advice.Thrown Throwable thrown) {
-    if (isEnabled(SpringRabbitMQAgentRule.class.getName(), origin))
+    if (isEnabled("SpringRabbitMQAgentRule", origin))
       SpringRabbitMQAgentIntercept.onMessageExit(thrown);
   }
 }

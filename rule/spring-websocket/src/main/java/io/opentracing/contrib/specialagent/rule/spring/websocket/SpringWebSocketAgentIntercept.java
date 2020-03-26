@@ -21,7 +21,7 @@ import org.springframework.messaging.support.ChannelInterceptor;
 
 import io.opentracing.Span;
 import io.opentracing.Tracer;
-import io.opentracing.contrib.specialagent.OpenTracingApiUtil;
+import io.opentracing.contrib.specialagent.AgentRuleUtil;
 import io.opentracing.propagation.Format;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
@@ -64,7 +64,7 @@ public class SpringWebSocketAgentIntercept {
       return;
 
     if (thrown != null)
-      OpenTracingApiUtil.setErrorTag(span, thrown);
+      AgentRuleUtil.setErrorTag(span, thrown);
 
     span.finish();
     spanHolder.remove();

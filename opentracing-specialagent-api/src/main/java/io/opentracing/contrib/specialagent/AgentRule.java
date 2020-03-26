@@ -94,10 +94,10 @@ public abstract class AgentRule {
         parentValue = Boolean.TRUE;
       }
 
-      if (!parentValue || Adapter.tracerClassLoader == null)
+      if (!parentValue || AgentRuleUtil.tracerClassLoader == null)
         return parentValue;
 
-      return !AgentRuleUtil.isFromClassLoader(AgentRuleUtil.getExecutionStack(), Adapter.tracerClassLoader);
+      return !AgentRuleUtil.isFromClassLoader(AgentRuleUtil.getExecutionStack(), AgentRuleUtil.tracerClassLoader);
     }
 
     @Override
@@ -119,22 +119,27 @@ public abstract class AgentRule {
 
   public static boolean isEnabled(final String agentRuleClass, final String origin) {
     final boolean enabled = initialized && mutexLatch.get() == 0 && isThreadInstrumentable.get();
-    final String shortName = agentRuleClass.substring(agentRuleClass.lastIndexOf('.') + 1);
+
     if (enabled) {
       if (logger.isLoggable(Level.FINER))
-        logger.finer("-------> Intercept [" + shortName + "@" + Thread.currentThread().getName() + "]: " + origin);
+        logger.finer("-------> Intercept [" + agentRuleClass + "@" + Thread.currentThread().getName() + "]: " + origin);
 
       currentAgentRuleClass.set(agentRuleClass);
     }
     else if (logger.isLoggable(Level.FINEST)) {
-      logger.finest("-------> Intercept [" + shortName + "@" + Thread.currentThread().getName() + "] DROP: " + origin);
+      logger.finest("-------> Intercept [" + agentRuleClass + "@" + Thread.currentThread().getName() + "] DROP: " + origin);
     }
 
     return enabled;
   }
 
   public static String getCurrentPluginName() {
-    return classNameToName.get(currentAgentRuleClass.get());
+    // FIXME: This is a big performance hit!
+    for (final Map.Entry<String,String> entry : classNameToName.entrySet())
+      if (entry.getKey() == null ? currentAgentRuleClass.get() == null : entry.getKey().endsWith("." + currentAgentRuleClass.get()))
+        return entry.getValue();
+
+    return null;
   }
 
   public static boolean isVerbose(final Class<? extends AgentRule> agentRuleClass) {
