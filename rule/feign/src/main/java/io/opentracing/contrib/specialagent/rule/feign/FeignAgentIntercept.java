@@ -18,10 +18,11 @@ package io.opentracing.contrib.specialagent.rule.feign;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+
 import feign.Request;
 import feign.Request.Options;
 import feign.Response;
-import feign.opentracing.FeignSpanDecorator;
+import feign.opentracing.FeignSpanDecorator.StandardTags;
 import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
@@ -32,6 +33,7 @@ import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class FeignAgentIntercept {
+  private static final StandardTags standardTags = new StandardTags();
 
   public static Object onRequest(final Object arg1, final Object arg2) {
     Request request = (Request)arg1;
@@ -41,8 +43,7 @@ public class FeignAgentIntercept {
       .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT)
       .start();
 
-    for (final FeignSpanDecorator decorator : Configuration.spanDecorators)
-      decorator.onRequest(request, (Options)arg2, span);
+    standardTags.onRequest(request, (Options)arg2, span);
 
     request = inject(span.context(), request);
 
@@ -63,11 +64,9 @@ public class FeignAgentIntercept {
     final Request request = (Request)arg2;
     final Options options = (Options)arg3;
     if (e == null)
-      for (final FeignSpanDecorator decorator : Configuration.spanDecorators)
-        decorator.onResponse(response, options, GlobalTracer.get().activeSpan());
+      standardTags.onResponse(response, options, GlobalTracer.get().activeSpan());
     else
-      for (final FeignSpanDecorator decorator : Configuration.spanDecorators)
-        decorator.onError(e, request, GlobalTracer.get().activeSpan());
+      standardTags.onError(e, request, GlobalTracer.get().activeSpan());
 
     finish();
   }
