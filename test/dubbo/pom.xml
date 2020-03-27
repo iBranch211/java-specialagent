@@ -23,12 +23,12 @@
     <artifactId>test</artifactId>
     <version>1.6.1-SNAPSHOT</version>
   </parent>
-  <groupId>io.opentracing.contrib.specialagent.test.spymemcached</groupId>
-  <artifactId>spymemcached</artifactId>
+  <groupId>io.opentracing.contrib.specialagent.test.dubbo</groupId>
+  <artifactId>dubbo</artifactId>
   <packaging>pom</packaging>
-  <name>SpecialAgent Tests for Spymemcached</name>
+  <name>SpecialAgent Tests for Dubbo</name>
   <modules>
-    <module>spymemcached-2.11.0</module>
-    <module>spymemcached-2.12.3</module>
+    <module>dubbo-2.6</module>
+    <module>dubbo-2.7</module>
   </modules>
 </project>

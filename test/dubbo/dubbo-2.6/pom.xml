@@ -1,5 +1,5 @@
 <!--
-  Copyright 2020 The OpenTracing Authors
+  Copyright 2019 The OpenTracing Authors
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -19,16 +19,20 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>io.opentracing.contrib.specialagent.test</groupId>
-    <artifactId>test</artifactId>
+    <groupId>io.opentracing.contrib.specialagent.test.dubbo</groupId>
+    <artifactId>dubbo</artifactId>
     <version>1.6.1-SNAPSHOT</version>
   </parent>
-  <groupId>io.opentracing.contrib.specialagent.test.spymemcached</groupId>
-  <artifactId>spymemcached</artifactId>
-  <packaging>pom</packaging>
-  <name>SpecialAgent Tests for Spymemcached</name>
-  <modules>
-    <module>spymemcached-2.11.0</module>
-    <module>spymemcached-2.12.3</module>
-  </modules>
+  <artifactId>dubbo-2.6</artifactId>
+  <name>SpecialAgent Test for dubbo 2.6</name>
+  <properties>
+    <version.dubbo>2.6.2</version.dubbo>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>com.alibaba</groupId>
+      <artifactId>dubbo</artifactId>
+      <version>${version.dubbo}</version>
+    </dependency>
+  </dependencies>
 </project>
