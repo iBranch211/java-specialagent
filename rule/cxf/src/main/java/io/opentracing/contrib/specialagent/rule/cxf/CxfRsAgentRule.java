@@ -27,22 +27,36 @@ import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.utility.JavaModule;
 
-public class CxfWsServerAgentRule extends AgentRule {
+public class CxfRsAgentRule extends AgentRule {
   @Override
   public Iterable<? extends AgentBuilder> buildAgent(final AgentBuilder builder) throws Exception {
     return Arrays.asList(
-      builder.type(hasSuperType(named("org.apache.cxf.frontend.ServerFactoryBean")))
+      builder.type(hasSuperType(named("org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean")))
         .transform(new Transformer() {
           @Override
           public Builder<?> transform(final Builder<?> builder, final TypeDescription typeDescription, final ClassLoader classLoader, final JavaModule module) {
-            return builder.visit(Advice.to(CxfWsServerAdvice.class).on(named("create")));
+            return builder.visit(Advice.to(CxfRsClientAdvice.class).on(named("createWithValues").or(named("createWebClient"))));
+          }}),
+      builder.type(hasSuperType(named("org.apache.cxf.jaxrs.JAXRSServerFactoryBean")))
+        .transform(new Transformer() {
+          @Override
+          public Builder<?> transform(final Builder<?> builder, final TypeDescription typeDescription, final ClassLoader classLoader, final JavaModule module) {
+            return builder.visit(Advice.to(CxfRsServerAdvice.class).on(named("create")));
           }}));
   }
 
-  public static class CxfWsServerAdvice {
+  public static class CxfRsClientAdvice {
     @Advice.OnMethodEnter
     public static void enter(final @Advice.Origin String origin, final @Advice.This Object thiz) {
-      if (isEnabled(CxfWsServerAgentRule.class.getName(), origin))
+      if (isEnabled(CxfRsAgentRule.class.getName(), origin))
+        CxfAgentIntercept.addClientTracingFeature(thiz);
+    }
+  }
+
+  public static class CxfRsServerAdvice {
+    @Advice.OnMethodEnter
+    public static void enter(final @Advice.Origin String origin, final @Advice.This Object thiz) {
+      if (isEnabled(CxfRsAgentRule.class.getName(), origin))
         CxfAgentIntercept.addServerTracingFeauture(thiz);
     }
   }
