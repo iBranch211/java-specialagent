@@ -35,10 +35,10 @@ import net.bytebuddy.implementation.bytecode.assign.Assigner.Typing;
 import net.bytebuddy.utility.JavaModule;
 
 public class ExecutorAgentRule extends AgentRule {
-  public final Transformer transformer = new Transformer() {
+  public static final Transformer transformer = new Transformer() {
     @Override
     public Builder<?> transform(final Builder<?> builder, final TypeDescription typeDescription, final ClassLoader classLoader, final JavaModule module) {
-      return builder.visit(advice().to(ExecutorAgentRule.class).on(named("execute").and(takesArguments(Runnable.class))));
+      return builder.visit(Advice.to(ExecutorAgentRule.class).on(named("execute").and(takesArguments(Runnable.class))));
     }};
 
   @Override
@@ -49,12 +49,12 @@ public class ExecutorAgentRule extends AgentRule {
   }
 
   @Advice.OnMethodEnter
-  public static void exit(final @ClassName String className, final @Advice.Origin String origin, @Advice.Argument(value = 0, readOnly = false, typing = Typing.DYNAMIC) Runnable arg) throws Exception {
-    if (!isEnabled(className, origin))
+  public static void exit(final @Advice.Origin String origin, @Advice.Argument(value = 0, readOnly = false, typing = Typing.DYNAMIC) Runnable arg) throws Exception {
+    if (!isEnabled(ExecutorAgentRule.class.getName(), origin))
       return;
 
     final Tracer tracer = GlobalTracer.get();
-    if (isVerbose(className)) {
+    if (isVerbose(ExecutorAgentRule.class)) {
       final Span span = tracer
         .buildSpan("execute")
         .withTag(Tags.COMPONENT, "java-concurrent")

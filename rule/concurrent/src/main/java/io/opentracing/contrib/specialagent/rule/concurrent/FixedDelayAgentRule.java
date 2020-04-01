@@ -36,10 +36,10 @@ import net.bytebuddy.implementation.bytecode.assign.Assigner.Typing;
 import net.bytebuddy.utility.JavaModule;
 
 public class FixedDelayAgentRule extends AgentRule {
-  public final Transformer transformer = new Transformer() {
+  public static final Transformer transformer = new Transformer() {
     @Override
     public Builder<?> transform(final Builder<?> builder, final TypeDescription typeDescription, final ClassLoader classLoader, final JavaModule module) {
-      return builder.visit(advice().to(FixedDelayAgentRule.class).on(named("scheduleWithFixedDelay").and(takesArguments(Runnable.class, long.class, long.class, TimeUnit.class))));
+      return builder.visit(Advice.to(FixedDelayAgentRule.class).on(named("scheduleWithFixedDelay").and(takesArguments(Runnable.class, long.class, long.class, TimeUnit.class))));
     }};
 
   @Override
@@ -50,12 +50,12 @@ public class FixedDelayAgentRule extends AgentRule {
   }
 
   @Advice.OnMethodEnter
-  public static void exit(final @ClassName String className, final @Advice.Origin String origin, @Advice.Argument(value = 0, readOnly = false, typing = Typing.DYNAMIC) Runnable arg) throws Exception {
-    if (!isEnabled(className, origin))
+  public static void exit(final @Advice.Origin String origin, @Advice.Argument(value = 0, readOnly = false, typing = Typing.DYNAMIC) Runnable arg) throws Exception {
+    if (!isEnabled(FixedDelayAgentRule.class.getName(), origin))
       return;
 
     final Tracer tracer = GlobalTracer.get();
-    if (isVerbose(className)) {
+    if (isVerbose(FixedDelayAgentRule.class)) {
       final Span span = tracer
         .buildSpan("scheduleWithFixedDelay")
         .withTag(Tags.COMPONENT, "java-concurrent")
