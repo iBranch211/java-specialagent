@@ -1,16 +1,16 @@
-# SpecialAgent Rule for Dynamic Integration
+# SpecialAgent Rule for Dynamic Instrumentation
 
 **Rule Name:** `dynamic`
 
 ## Configuration
 
-Following properties are supported by the Dynamic Integration Rule.
+Following properties are supported by the Dynamic Instrumentation Rule.
 
 ### Properties
 
-* `-Dsa.integration.dynamic.rules=$RULES`
+* `-Dsa.instrumentation.plugin.dynamic.rules=$RULES`
 
-  Provides dynamic <ins>Integration Rules</ins> as per the following specification:
+  Provides dynamic instrumentation rules as per the following specification:
 
   **Spec**
 

@@ -30,15 +30,17 @@ import net.bytebuddy.matcher.ElementMatcher.Junction;
 import net.bytebuddy.utility.JavaModule;
 
 public class DynamicAgentRule extends AgentRule {
-  private static final String RULES = "sa.integration.dynamic.rules";
+  private static final String RULES = "sa.instrumentation.plugin.dynamic.rules";
 
   @Override
-  public Iterable<? extends AgentBuilder> buildAgent(final AgentBuilder builder) throws Exception {
+  public Iterable<? extends AgentBuilder> buildAgent(AgentBuilder builder) throws Exception {
     final ArrayList<AgentBuilder> builders = new ArrayList<>();
 
     final String rules = System.getProperty(RULES);
-    if (rules == null || rules.isEmpty())
+    if (rules == null || rules.isEmpty()) {
+      // sa.config.instrumentation.plugin.method is not config
       return builders;
+    }
 
     final DynamicSpec[] specs = DynamicSpec.parseRules(rules);
     for (final DynamicSpec spec : specs) {
@@ -63,7 +65,7 @@ public class DynamicAgentRule extends AgentRule {
               methodDesc = methodDesc.and(returns(named(spec.returning)));
           }
 
-          return builder.visit(Advice.to(DynamicAgentRule.class).on(methodDesc));
+          return builder.visit(advice().to(DynamicAgentRule.class).on(methodDesc));
         }
       }));
     }
@@ -72,14 +74,14 @@ public class DynamicAgentRule extends AgentRule {
   }
 
   @Advice.OnMethodEnter
-  public static void enter(final @Advice.Origin String origin) {
-    if (isEnabled(DynamicAgentRule.class.getName(), origin))
+  public static void enter(final @ClassName String className, final @Advice.Origin String origin) {
+    if (isEnabled(className, origin))
       DynamicAgentIntercept.enter(origin);
   }
 
   @Advice.OnMethodExit(onThrowable = Throwable.class)
-  public static void exit(final @Advice.Origin String origin, final @Advice.Thrown Throwable thrown) {
-    if (isEnabled(DynamicAgentRule.class.getName(), origin))
+  public static void exit(final @ClassName String className, final @Advice.Origin String origin, final @Advice.Thrown Throwable thrown) {
+    if (isEnabled(className, origin))
       DynamicAgentIntercept.exit(thrown);
   }
 }

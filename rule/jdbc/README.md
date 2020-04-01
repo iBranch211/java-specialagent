@@ -8,13 +8,13 @@ Following properties are supported by the JDBC Rule.
 
 ### Properties
 
-* `-Dsa.integration.jdbc.withActiveSpanOnly`
+* `-Dsa.instrumentation.plugin.jdbc.withActiveSpanOnly`
 
   Skip tracing on invocations without an active span.
 
   **Default:** "false"
 
-* `-Dsa.integration.jdbc.ignoreForTracing`
+* `-Dsa.instrumentation.plugin.jdbc.ignoreForTracing`
 
   Skip tracing on specific SQL, identified by the specified SQL clause.
 
@@ -24,6 +24,6 @@ Following properties are supported by the JDBC Rule.
 
   **Example:** `SELECT 1 FROM dual @@ SELECT 2 FROM dual`
 
-* `-Dsa.integration.jdbc.ignoreForTracing.separator`
+* `-Dsa.instrumentation.plugin.jdbc.ignoreForTracing.separator`
 
   Customized separator is supported for situations where `@@` is not an appropriate separator.
