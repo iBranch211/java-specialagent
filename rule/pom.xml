@@ -21,7 +21,7 @@
   <parent>
     <groupId>io.opentracing.contrib.specialagent</groupId>
     <artifactId>specialagent</artifactId>
-    <version>1.6.2-SNAPSHOT</version>
+    <version>1.7.0-SNAPSHOT</version>
   </parent>
   <groupId>io.opentracing.contrib.specialagent.rule</groupId>
   <artifactId>rule</artifactId>
@@ -106,8 +106,7 @@
         <module>pulsar-client</module>
         <module>pulsar-functions</module>
         <module>dynamic</module>
-        <module>cxf-client</module>
-        <module>cxf-server</module>
+        <module>cxf</module>
       </modules>
       <build>
         <resources>
