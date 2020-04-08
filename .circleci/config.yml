@@ -1,17 +1,3 @@
-# Copyright 2020 The OpenTracing Authors
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 version: 2.1
 
 executors:
@@ -27,33 +13,30 @@ executors:
 env: &env
   steps:
     - run: export MAVEN_OPTS=-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-    - restore_cache:
-      - keys: # Reset the cache approx every release
-        - trace-java-{{ checksum "pom.xml" }}-{{ .Branch }}-{{ .Revision }}
-        - trace-java-{{ checksum "pom.xml" }}-{{ .Branch }}
-        - trace-java-{{ checksum "pom.xml" }}
 
 install: &install
-  <<: *env
   steps:
     - checkout
-    - run: mvn -B -P test --fail-at-end -Dsilent dependency:go-offline || true
+    - restore_cache:
+        key: cache-{{ .Branch }}-{{ checksum "pom.xml" }}
+    - run: mvn dependency:go-offline
     - save_cache:
         paths:
           - ~/.m2
         key: cache-{{ .Branch }}-{{ checksum "pom.xml" }}
+    <<: *env
     - run: |
         mkdir -p ~/.m2
         cp settings.xml ~/.m2/settings.xml
         rm -rf ~/.m2/build ~/.m2/repository/io/opentracing/contrib/specialagent
-        if [ "$CIRCLE_BRANCH" = "XXX-master-XXX" ] &&
+        if [ "$CIRCLE_BRANCH" = "master" ] &&
            [ "$CIRCLE_PULL_REQUEST" = "" ]; then
-          mvn -e -B -P report install &&
-          mvn -e -B -DrepoToken=$REPO_TOKEN coveralls:report &&
-          mvn -e -B -Dassemble install;
+          mvn -B -P report install &&
+          mvn -B -DrepoToken=$REPO_TOKEN coveralls:report &&
+          mvn -B -Dassemble install;
         else
-          mvn -e -B -DskipTests install &&
-          mvn -e -B -DignoreMissingTestManifest -Dassemble install;
+          mvn -B install &&
+          mvn -B -Dassemble install;
         fi
     - persist_to_workspace:
         root: /tmp
@@ -63,37 +46,36 @@ install: &install
 test: &test
   steps:
     - attach_workspace:
-        at: /tmp/${CIRCLE_JOB}
+      at: /tmp/${CIRCLE_JOB}
     - run:
         command: |
-          TEST=$(circleci tests glob "test/*" | circleci tests split)
-          mvn -e -B -P test -pl $TEST -amd test-compile
+          TESTS=$(circleci tests glob "test/???[!.]*" | circleci tests split)
+          mvn -B -P test -pl $TESTS -amd install
 
 jobs:
   install-jdk8:
-    <<: *install
     executor: openjdk8
+    <<: *install
   install-jdk11:
+    executor: openjdk11
     <<: *install
-    executor: openjdk11
   test-jdk8:
-    <<: *test
     executor: openjdk8
-  test-jdk11:
     <<: *test
+  test-jdk11:
     executor: openjdk11
+    <<: *test
   deploy:
-    <<: *env
     executor: openjdk8
     steps:
-      - run: export MAVEN_OPTS=-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
       - attach_workspace:
-          at: /tmp/${CIRCLE_JOB}
+        at: /tmp/${CIRCLE_JOB}
+      <<: *env
       - run: |
           if [ "$CIRCLE_BRANCH" = "master" ] &&
              [ "$CIRCLE_PULL_REQUEST" = "" ]; then
             eval "$SIGNING_KEY" &> /dev/null &&
-            mvn -e -B -DignoreMissingTestManifest -Dassemble -P deploy install;
+            mvn -B -Dassemble -P deploy deploy;
           fi
 
 workflows:
