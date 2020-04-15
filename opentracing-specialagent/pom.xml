@@ -283,7 +283,21 @@
         </dependency>
         <dependency>
           <groupId>io.opentracing.contrib.specialagent.rule</groupId>
-          <artifactId>lettuce</artifactId>
+          <artifactId>lettuce-5.0</artifactId>
+          <version>${project.version}</version>
+          <optional>true</optional>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>io.opentracing.contrib.specialagent.rule</groupId>
+          <artifactId>lettuce-5.1</artifactId>
+          <version>${project.version}</version>
+          <optional>true</optional>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>io.opentracing.contrib.specialagent.rule</groupId>
+          <artifactId>lettuce-5.2</artifactId>
           <version>${project.version}</version>
           <optional>true</optional>
           <scope>provided</scope>
