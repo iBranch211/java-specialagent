@@ -20,11 +20,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import io.opentracing.contrib.specialagent.TestUtil;
+
 @Controller
 public class TestController {
   @RequestMapping(value = "/", method = RequestMethod.GET)
   @ResponseBody
   public String test() {
+    TestUtil.checkActiveSpan();
     return "test";
   }
 }
