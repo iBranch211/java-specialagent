@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package io.opentracing.contrib.specialagent.rule.spring.webmvc;
+package io.opentracing.contrib.specialagent.rule.spring.webmvc5;
 
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
@@ -23,14 +23,13 @@ import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType.Builder;
-import net.bytebuddy.implementation.bytecode.assign.Assigner.Typing;
 import net.bytebuddy.utility.JavaModule;
 
 public class SpringWebRegistryAgentRule extends AgentRule {
   @Override
   public AgentBuilder[] buildAgentUnchained(final AgentBuilder builder) {
     return new AgentBuilder[] {builder
-      .type(named("org.springframework.web.servlet.HandlerExecutionChain"))
+      .type(named("org.springframework.web.servlet.config.annotation.InterceptorRegistry"))
       .transform(new Transformer() {
         @Override
         public Builder<?> transform(final Builder<?> builder, final TypeDescription typeDescription, final ClassLoader classLoader, final JavaModule module) {
@@ -38,9 +37,9 @@ public class SpringWebRegistryAgentRule extends AgentRule {
         }})};
   }
 
-  @Advice.OnMethodExit
-  public static void enter(final @ClassName String className, final @Advice.Origin String origin, @Advice.Return(typing = Typing.DYNAMIC, readOnly = false) Object returned) {
+  @Advice.OnMethodEnter
+  public static void enter(final @ClassName String className, final @Advice.Origin String origin, final @Advice.This Object thiz) {
     if (isAllowed(className, origin))
-      returned = SpringWebMvcAgentIntercept.getInterceptors(returned);
+      SpringWebMvcAgentIntercept.getInterceptors(thiz);
   }
 }

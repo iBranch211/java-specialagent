@@ -13,18 +13,23 @@
  * limitations under the License.
  */
 
-package io.opentracing.contrib.specialagent.rule.spring.webmvc;
+package io.opentracing.contrib.specialagent.rule.spring.webmvc3;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import io.opentracing.util.GlobalTracer;
+
 @Controller
 public class TestController {
   @RequestMapping(value = "/", method = RequestMethod.GET)
   @ResponseBody
   public String test() {
+    if (GlobalTracer.get().activeSpan() == null)
+      throw new RuntimeException("no active span");
+
     return "test";
   }
 }

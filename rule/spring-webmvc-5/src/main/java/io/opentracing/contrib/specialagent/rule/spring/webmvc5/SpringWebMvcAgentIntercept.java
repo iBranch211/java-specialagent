@@ -13,18 +13,16 @@
  * limitations under the License.
  */
 
-package io.opentracing.contrib.specialagent.rule.spring.webmvc;
+package io.opentracing.contrib.specialagent.rule.spring.webmvc5;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 
-@Controller
-public class TestController {
-  @RequestMapping(value = "/", method = RequestMethod.GET)
-  @ResponseBody
-  public String test() {
-    return "test";
+import io.opentracing.contrib.specialagent.rule.spring.webmvc5.copied.TracingHandlerInterceptor;
+import io.opentracing.util.GlobalTracer;
+
+public class SpringWebMvcAgentIntercept {
+  public static void getInterceptors(final Object thiz) {
+    final InterceptorRegistry registry = (InterceptorRegistry)thiz;
+    registry.addInterceptor(new TracingHandlerInterceptor(GlobalTracer.get()));
   }
 }

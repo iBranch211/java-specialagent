@@ -11,14 +11,19 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package io.opentracing.contrib.specialagent.rule.spring.webmvc.copied;
+package io.opentracing.contrib.specialagent.rule.spring.webmvc5.copied;
 
-import io.opentracing.Span;
-import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.method.HandlerMethod;
+
+import io.opentracing.Span;
 
 /**
  * SpanDecorator to decorate span at different stages in filter processing.
@@ -47,12 +52,10 @@ public interface HandlerInterceptorSpanDecorator {
    * @param ex exception
    * @param span current span
    */
-  void onAfterCompletion(HttpServletRequest httpServletRequest,
-      HttpServletResponse httpServletResponse, Object handler,
+  void onAfterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler,
       Exception ex, Span span);
 
   /**
-   * For spring-webmvc 4+
    * This is called in
    * {@link org.springframework.web.servlet.AsyncHandlerInterceptor#afterConcurrentHandlingStarted(HttpServletRequest, HttpServletResponse, Object)}
    *
@@ -61,8 +64,7 @@ public interface HandlerInterceptorSpanDecorator {
    * @param handler handler
    * @param span current span
    */
-  void onAfterConcurrentHandlingStarted(HttpServletRequest httpServletRequest,
-      HttpServletResponse httpServletResponse, Object handler,
+  void onAfterConcurrentHandlingStarted(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler,
       Span span);
 
   /**
@@ -152,25 +154,19 @@ public interface HandlerInterceptorSpanDecorator {
     public static final String HANDLER = "handler";
 
     public static String className(Object handler) {
-      // org.springframework.web.method.HandlerMethod
-
-      try {
-        Class<?> clazz = (Class<?>) handler.getClass().getMethod("getBeanType").invoke(handler);
-        return clazz.getSimpleName();
-      } catch (Exception ignore) {
-      }
-
-      return handler.getClass().getSimpleName();
+      return handler instanceof HandlerMethod ?
+          ((HandlerMethod) handler).getBeanType().getSimpleName() :
+          handler.getClass().getSimpleName() ;
     }
 
     public static String methodName(Object handler) {
-      try {
-        final Method method = (Method) handler.getClass().getMethod("getMethod").invoke(handler);
-        return method.getName();
-      } catch (Exception ignore) {
-      }
+      return handler instanceof HandlerMethod ?
+          ((HandlerMethod) handler).getMethod().getName() : null;
+    }
 
-      return null;
+    public static String requestMapping(Object handler) {
+      String[] mappings = ((HandlerMethod) handler).getMethodAnnotation(RequestMapping.class).path();
+      return Arrays.toString(mappings);
     }
   }
 }
