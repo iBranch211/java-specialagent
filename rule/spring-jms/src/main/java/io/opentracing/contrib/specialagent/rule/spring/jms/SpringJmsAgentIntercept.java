@@ -32,18 +32,16 @@ import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class SpringJmsAgentIntercept {
-  static final String COMPONENT_NAME = "spring-jms";
-
   public static void onMessageEnter(final Object msg) {
-    if (LocalSpanContext.get(COMPONENT_NAME) != null) {
-      LocalSpanContext.get(COMPONENT_NAME).increment();
+    if (LocalSpanContext.get() != null) {
+      LocalSpanContext.get().increment();
       return;
     }
 
     final Tracer tracer = GlobalTracer.get();
     final SpanBuilder builder = tracer
       .buildSpan("onMessage")
-      .withTag(Tags.COMPONENT, COMPONENT_NAME)
+      .withTag(Tags.COMPONENT, "spring-jms")
       .withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_CONSUMER);
 
     SpanContext spanContext = null;
@@ -57,11 +55,11 @@ public class SpringJmsAgentIntercept {
       builder.addReference(References.FOLLOWS_FROM, spanContext);
 
     final Span span = builder.start();
-    LocalSpanContext.set(COMPONENT_NAME, span, tracer.activateSpan(span));
+    LocalSpanContext.set(span, tracer.activateSpan(span));
   }
 
   public static void onMessageExit(final Throwable thrown) {
-    final LocalSpanContext context = LocalSpanContext.get(COMPONENT_NAME);
+    final LocalSpanContext context = LocalSpanContext.get();
     if (context == null || context.decrementAndGet() != 0)
       return;
 

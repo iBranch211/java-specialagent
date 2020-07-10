@@ -51,7 +51,7 @@ public class PulsarFunctionsAgentIntercept {
     final Span span = spanBuilder.start();
     final Scope scope = tracer.activateSpan(span);
 
-    LocalSpanContext.set(COMPONENT_NAME, span, scope);
+    LocalSpanContext.set(span, scope);
   }
 
   private static String getFunctionName(final Object function, final Object contextArg) {
@@ -69,7 +69,7 @@ public class PulsarFunctionsAgentIntercept {
   }
 
   public static void handleMessageEnd(final Object returned, final Throwable thrown) {
-    final LocalSpanContext context = LocalSpanContext.get(COMPONENT_NAME);
+    final LocalSpanContext context = LocalSpanContext.get();
     if (context == null)
       return;
 

@@ -31,8 +31,8 @@ public class GoogleHttpClientAgentIntercept {
   static final String COMPONENT_NAME = "google-http-client";
 
   public static void enter(final Object thiz) {
-    if (LocalSpanContext.get(COMPONENT_NAME) != null) {
-      LocalSpanContext.get(COMPONENT_NAME).increment();
+    if (LocalSpanContext.get() != null) {
+      LocalSpanContext.get().increment();
       return;
     }
 
@@ -50,11 +50,11 @@ public class GoogleHttpClientAgentIntercept {
     final Scope scope = tracer.activateSpan(span);
     tracer.inject(span.context(), Builtin.HTTP_HEADERS, new HttpHeadersInjectAdapter(request.getHeaders()));
 
-    LocalSpanContext.set(COMPONENT_NAME, span, scope);
+    LocalSpanContext.set(span, scope);
   }
 
   public static void exit(Throwable thrown, Object returned) {
-    final LocalSpanContext context = LocalSpanContext.get(COMPONENT_NAME);
+    final LocalSpanContext context = LocalSpanContext.get();
     if (context == null)
       return;
 

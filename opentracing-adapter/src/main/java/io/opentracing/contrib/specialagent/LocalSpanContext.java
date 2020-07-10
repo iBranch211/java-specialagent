@@ -15,41 +15,33 @@
 
 package io.opentracing.contrib.specialagent;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import io.opentracing.Scope;
 import io.opentracing.Span;
 
 /**
- * Thread local map holder for Span, Scope and counter to control stack of
- * calls. Map is used to avoid suppressing of creation of new span when active
- * span of another component exists. Key of the map is component name.
+ * Thread local holder for Span, Scope and counter to control stack of calls.
  */
 public class LocalSpanContext {
-  private static final ThreadLocal<Map<String,LocalSpanContext>> instance = new ThreadLocal<>();
-
-  private final String name;
+  private static final ThreadLocal<LocalSpanContext> instance = new ThreadLocal<>();
   private final Span span;
   private final Scope scope;
   private int counter = 1;
 
-  private LocalSpanContext(final String name, final Span span, final Scope scope) {
-    this.name = name;
+  private LocalSpanContext(final Span span, final Scope scope) {
     this.span = span;
     this.scope = scope;
   }
 
-  public static LocalSpanContext get(final String name) {
-    final Map<String,LocalSpanContext> map = instance.get();
-    return map == null ? null : map.get(name);
+  public static LocalSpanContext get() {
+    return instance.get();
   }
 
-  public static void set(final String name, final Span span, final Scope scope) {
-    if (instance.get() == null)
-      instance.set(new HashMap<String,LocalSpanContext>());
+  public static void set(final Span span, final Scope scope) {
+    instance.set(new LocalSpanContext(span, scope));
+  }
 
-    instance.get().put(name, new LocalSpanContext(name, span, scope));
+  public static void remove() {
+    instance.remove();
   }
 
   public Span getSpan() {
@@ -71,13 +63,7 @@ public class LocalSpanContext {
   }
 
   public void closeScope() {
-    final Map<String,LocalSpanContext> map = instance.get();
-    if (map != null) {
-      map.remove(name);
-      if (map.isEmpty())
-        instance.remove();
-    }
-
+    instance.remove();
     if (scope != null)
       scope.close();
   }

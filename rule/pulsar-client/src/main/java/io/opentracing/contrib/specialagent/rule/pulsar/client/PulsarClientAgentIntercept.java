@@ -71,8 +71,8 @@ public class PulsarClientAgentIntercept {
   }
 
   public static void internalSendAsyncEnter(final Object thiz, final Object arg) {
-    if (LocalSpanContext.get(COMPONENT_NAME) != null) {
-      LocalSpanContext.get(COMPONENT_NAME).increment();
+    if (LocalSpanContext.get() != null) {
+      LocalSpanContext.get().increment();
       return;
     }
 
@@ -93,12 +93,12 @@ public class PulsarClientAgentIntercept {
     tracer.inject(span.context(), Builtin.TEXT_MAP, new PropertiesMapInjectAdapter(message.getMessageBuilder()));
 
     final Scope scope = tracer.activateSpan(span);
-    LocalSpanContext.set(COMPONENT_NAME, span, scope);
+    LocalSpanContext.set(span, scope);
   }
 
   @SuppressWarnings("unchecked")
   public static Object internalSendAsyncEnd(final Object returned, final Throwable thrown) {
-    final LocalSpanContext context = LocalSpanContext.get(COMPONENT_NAME);
+    final LocalSpanContext context = LocalSpanContext.get();
     if (context == null)
       return returned;
 

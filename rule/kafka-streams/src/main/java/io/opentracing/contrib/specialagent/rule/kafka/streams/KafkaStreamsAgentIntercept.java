@@ -29,21 +29,19 @@ import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class KafkaStreamsAgentIntercept {
-  static final String COMPONENT_NAME = "kafka-streams";
-
   public static void onNextRecordExit(final Object record) {
     if (record == null)
       return;
 
-    if (LocalSpanContext.get(COMPONENT_NAME) != null) {
-      LocalSpanContext.get(COMPONENT_NAME).increment();
+    if (LocalSpanContext.get() != null) {
+      LocalSpanContext.get().increment();
       return;
     }
 
     final Tracer tracer = GlobalTracer.get();
     final StampedRecord stampedRecord = (StampedRecord)record;
     final SpanBuilder spanBuilder = tracer.buildSpan("consume")
-      .withTag(Tags.COMPONENT, COMPONENT_NAME)
+      .withTag(Tags.COMPONENT, "kafka-streams")
       .withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_CONSUMER)
       .withTag(Tags.PEER_SERVICE, "kafka")
       .withTag("partition", stampedRecord.partition())
@@ -57,11 +55,11 @@ public class KafkaStreamsAgentIntercept {
       spanBuilder.asChildOf(parentContext);
 
     final Span span = spanBuilder.start();
-    LocalSpanContext.set(COMPONENT_NAME, span, tracer.activateSpan(span));
+    LocalSpanContext.set(span, tracer.activateSpan(span));
   }
 
   public static void onProcessExit(final Throwable thrown) {
-    final LocalSpanContext context = LocalSpanContext.get(COMPONENT_NAME);
+    final LocalSpanContext context = LocalSpanContext.get();
     if (context == null || context.decrementAndGet() != 0)
       return;
 

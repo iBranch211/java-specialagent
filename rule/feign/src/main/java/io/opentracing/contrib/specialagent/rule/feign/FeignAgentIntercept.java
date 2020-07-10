@@ -32,22 +32,19 @@ import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 public class FeignAgentIntercept {
-  static final String COMPONENT_NAME = "java-feign";
-
   public static Object onRequest(final Object arg1, final Object arg2) {
     final Request request = (Request)arg1;
     final Tracer tracer = GlobalTracer.get();
     final Span span = tracer
       .buildSpan(request.method())
-      .withTag(Tags.SPAN_KIND, Tags.SPAN_KIND_CLIENT)
-      .withTag(Tags.COMPONENT, COMPONENT_NAME)
+      .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT)
       .start();
 
     for (final FeignSpanDecorator decorator : Configuration.spanDecorators)
       decorator.onRequest(request, (Options)arg2, span);
 
     final Scope scope = tracer.activateSpan(span);
-    LocalSpanContext.set(COMPONENT_NAME, span, scope);
+    LocalSpanContext.set(span, scope);
 
     return inject(tracer, span.context(), request);
   }
@@ -75,7 +72,7 @@ public class FeignAgentIntercept {
   }
 
   private static void finish() {
-    final LocalSpanContext context = LocalSpanContext.get(COMPONENT_NAME);
+    final LocalSpanContext context = LocalSpanContext.get();
     if (context != null)
       context.closeAndFinish();
   }

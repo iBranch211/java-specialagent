@@ -35,8 +35,8 @@ public class PlayAgentIntercept {
   static final String COMPONENT_NAME = "play";
 
   public static void applyStart(final Object arg0) {
-    if (LocalSpanContext.get(COMPONENT_NAME) != null) {
-      LocalSpanContext.get(COMPONENT_NAME).increment();
+    if (LocalSpanContext.get() != null) {
+      LocalSpanContext.get().increment();
       return;
     }
 
@@ -53,12 +53,12 @@ public class PlayAgentIntercept {
       spanBuilder.asChildOf(parent);
 
     final Span span = spanBuilder.start();
-    LocalSpanContext.set(COMPONENT_NAME, span, tracer.activateSpan(span));
+    LocalSpanContext.set(span, tracer.activateSpan(span));
   }
 
   @SuppressWarnings("unchecked")
   public static void applyEnd(final Object thiz, final Object returned, final Throwable thrown) {
-    final LocalSpanContext context = LocalSpanContext.get(COMPONENT_NAME);
+    final LocalSpanContext context = LocalSpanContext.get();
     if (context == null)
       return;
 
@@ -77,10 +77,12 @@ public class PlayAgentIntercept {
     ((Future<Result>)returned).onComplete(new Function1<Try<Result>,Object>() {
       @Override
       public Object apply(final Try<Result> response) {
-        if (response.isFailure())
+        if (response.isFailure()) {
           OpenTracingApiUtil.setErrorTag(span, response.failed().get());
-        else
+        }
+        else {
           span.setTag(Tags.HTTP_STATUS, response.get().header().status());
+        }
 
         span.finish();
         return null;
